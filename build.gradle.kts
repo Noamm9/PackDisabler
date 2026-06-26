@@ -1,6 +1,7 @@
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import org.codehaus.groovy.runtime.DefaultGroovyMethods.mixin
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -40,6 +41,7 @@ class Dependencies {
     val devauthVersion = property("deps.devauth_version")
     val mixinconstraintsVersion = property("deps.mixinconstraints_version")
     val mixinsquaredVersion = property("deps.mixinsquared_version")
+    val modmenuVersion = property("deps.modmenu_version")
 }
 
 class McData {
@@ -103,6 +105,14 @@ repositories {
 }
 
 dependencies {
+    components {
+        withModule("com.terraformersmc:modmenu") {
+            allVariants {
+                attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, if (obfuscated) 21 else 24)
+            }
+        }
+    }
+
     "minecraft"("com.mojang:minecraft:${mc.version}")
     if (obfuscated) "mappings"(loom.officialMojangMappings())
 
@@ -112,6 +122,7 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${deps.fabricApiVersion}+${mc.version}") {
         exclude(group = "net.fabricmc.fabric-api", module = "fabric-content-registries-v0")
     }
+    compileOnly(group = "com.terraformersmc", name = "modmenu", version = deps.modmenuVersion.toString(), ext = "jar")
 
     val mixinconstraints = implementation("com.moulberry:mixinconstraints:${deps.mixinconstraintsVersion}")!!
     val mixinsquared = implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${deps.mixinsquaredVersion}")!!)!!
@@ -120,12 +131,18 @@ dependencies {
 }
 
 java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+
     val javaVersion = if (obfuscated) JavaVersion.VERSION_21 else JavaVersion.VERSION_24
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
 }
 
 kotlin {
+    jvmToolchain(25)
+
     compilerOptions {
         jvmTarget.set(if (obfuscated) JvmTarget.JVM_21 else JvmTarget.JVM_24)
     }

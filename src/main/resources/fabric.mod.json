@@ -14,6 +14,11 @@
 	"license": "${license}",
 	"icon": "assets/${id}/icon.png",
 	"environment": "client",
+	"entrypoints": {
+		"modmenu": [
+			"com.github.noamm9.packdisabler.ModMenuIntegration"
+		]
+	},
 	"depends": {
 		"fabricloader": ">=${fabric_loader_version}",
 		"minecraft": "${mcdep}",
