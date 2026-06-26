@@ -4,9 +4,7 @@
 	"version": "${version}",
 	"name": "${name}",
 	"description": "${description}",
-	"authors": [
-		"Noamm"
-	],
+	"authors": ["Noamm"],
 	"contributors": [],
 	"contact": {
 		"homepage": "${modrinth}",

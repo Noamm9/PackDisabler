@@ -16,50 +16,47 @@ import net.fabricmc.api.ClientModInitializer
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
 import org.slf4j.LoggerFactory
-import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import javax.net.ssl.HttpsURLConnection
 
 @Entrypoint(Entrypoint.CLIENT)
 class PackDisabler : ClientModInitializer {
     companion object {
-        val logger = LoggerFactory.getLogger("PackDisabler")
-
-        @JvmField var idToLocation = ConcurrentHashMap<String, Identifier>()
-        @JvmField val idToSkullProfile = ConcurrentHashMap<String, ResolvableProfile>()
+        val logger = LoggerFactory.getLogger(PackDisabler::class.java)
+        var idToLocation = ConcurrentHashMap<String, Identifier>()
+        val idToSkullProfile = ConcurrentHashMap<String, ResolvableProfile>()
     }
 
     override fun onInitializeClient() {
-        logger.info("PackDisabler Initializing")
-
         CoroutineScope(Dispatchers.IO).launch {
             withContext(Dispatchers.IO) {
                 try {
-                    val response = (URL("https://api.noamm.org/resources/skyblock-items").openConnection() as HttpURLConnection).apply {
+                    val response = (URI.create("https://api.noamm.org/resources/skyblock-items").toURL().openConnection() as HttpsURLConnection).apply {
                         requestMethod = "GET"
                         setRequestProperty("User-Agent", this::class.simpleName)
                     }.inputStream.bufferedReader().readText()
 
                     for ((sbid, element) in Json.parseToJsonElement(response).jsonObject) {
                         val item = element.jsonObject
-                        val id = item["id"]?.jsonPrimitive?.content ?: continue
-                        val model = item["model"]?.jsonPrimitive?.content
+                        val model = item["model"]?.jsonPrimitive?.content ?: continue
                         val texture = item["texture"]?.jsonPrimitive?.content
 
-                        idToLocation[sbid] = Identifier.parse(model ?: id)
-                        if (!texture.isNullOrEmpty()) idToSkullProfile[sbid] = createSkullProfile(sbid, texture)
+                        idToLocation[sbid] = Identifier.parse(model)
+                        if (!texture.isNullOrEmpty()) idToSkullProfile[sbid] = createProfile(sbid, texture)
                     }
 
                     logger.info("PackDisabler finished loading ${idToLocation.size} items")
-                } catch (e: Exception) {
+                }
+                catch (e: Exception) {
                     logger.error("Failed to fetch Skyblock items", e)
                 }
             }
         }
     }
 
-    fun createSkullProfile(sbid: String, texture: String): ResolvableProfile {
+    fun createProfile(sbid: String, texture: String): ResolvableProfile {
         val properties = PropertyMap(ImmutableMultimap.of("textures", Property("textures", texture)))
         val profile = GameProfile(UUID.nameUUIDFromBytes("@MODID@:$sbid".toByteArray()), this::class.simpleName, properties)
         return ResolvableProfile.createResolved(profile)

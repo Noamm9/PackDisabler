@@ -13,21 +13,25 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.ResolvableProfile
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
+/**
+ * ideally it would be best to set the stack componnents to the old ones permentnty
+ * however doing that could break future mods/texturepacks
+ */
 object MixinHooks {
-    @JvmField var isLoading = false
+    private var isLoading = false // used to hide the loading screen
 
     @JvmStatic
     fun itemModelHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<Identifier>): Identifier {
         val currentModel = original.call(stack, key)
         if (stack.isEmpty) return currentModel
-        val skyblockID = stack.skyblockId
-
         if (currentModel.namespace != "hypixel_skyblock") return currentModel
 
+        val skyblockID = stack.skyblockId
         val customData = stack.customData
 
+        // quiver arrows have no skyblock id
         val oldModel = when {
-            skyblockID.isNotEmpty() -> PackDisabler.idToLocation[stack.skyblockId]
+            skyblockID != null -> PackDisabler.idToLocation[stack.skyblockId]
             customData.contains("quiver_arrow") -> Items.ARROW.components()[DataComponents.ITEM_MODEL]
             else -> null
         }
@@ -39,10 +43,7 @@ object MixinHooks {
     fun skullProfileHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<ResolvableProfile>): ResolvableProfile {
         val currentProfile = original.call(stack, key)
         if (stack.isEmpty) return currentProfile
-        if (key != DataComponents.PROFILE) return currentProfile
-
-        val skyblockID = stack.skyblockId
-        if (skyblockID.isEmpty()) return currentProfile
+        val skyblockID = stack.skyblockId ?: return currentProfile
 
         val profile = PackDisabler.idToSkullProfile[skyblockID]
         return profile ?: currentProfile
@@ -54,7 +55,8 @@ object MixinHooks {
         else if (overlay == null && isLoading) isLoading = false
     }
 
-    @JvmStatic fun resourcePackPushHook() {
+    @JvmStatic
+    fun resourcePackPushHook() {
         isLoading = true
     }
 }

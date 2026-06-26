@@ -12,7 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(ItemModelResolver.class)
 public class MixinItemModelResolver {
-    @WrapOperation(method = "appendItemLayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;"))
+    @WrapOperation(
+        method = "appendItemLayers",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;")
+    )
     private Object appendItemLayerHook(ItemStack instance, DataComponentType dataComponentType, Operation<Identifier> original) {
         return MixinHooks.itemModelHook(instance, dataComponentType, original);
     }
