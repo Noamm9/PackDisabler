@@ -1,0 +1,36 @@
+name: build
+on: [ pull_request, push ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: build all versions
+        run: |
+          ./gradlew --no-daemon stonecutterSwitchTo1.21.11
+          ./gradlew --no-daemon buildActive
+          ./gradlew --no-daemon stonecutterSwitchTo26.1.2
+          ./gradlew --no-daemon buildActive
+          ./gradlew --no-daemon stonecutterSwitchTo26.2
+          ./gradlew --no-daemon buildActive
+      - name: capture build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PackDisabler-jars
+          path: versions/*/build/libs/*.jar
+          compression-level: 0
+      - name: generate nightly download link
+        run: |
+          echo "### Nightly Download Link" >> $GITHUB_STEP_SUMMARY
+          echo "You can download the artifacts from this run here: [PackDisabler-jars.zip](https://nightly.link/${{ github.repository }}/workflows/build/${{ github.ref_name }}/PackDisabler-jars.zip)" >> $GITHUB_STEP_SUMMARY
