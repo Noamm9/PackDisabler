@@ -1,5 +1,6 @@
 package com.github.noamm9.packdisabler
 
+import com.github.noamm9.packdisabler.config.Config
 import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
@@ -30,6 +31,8 @@ class PackDisabler : ClientModInitializer {
     }
 
     override fun onInitializeClient() {
+        Config.handler.load()
+
         CoroutineScope(Dispatchers.IO).launch {
             withContext(Dispatchers.IO) {
                 try {

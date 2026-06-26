@@ -3,10 +3,14 @@ package com.github.noamm9.packdisabler
 import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
+import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.screens.LoadingOverlay
 import net.minecraft.client.gui.screens.Overlay
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner
 import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.component.DataComponents
+import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -50,13 +54,20 @@ object MixinHooks {
     }
 
     @JvmStatic
+    fun renderToolTipHook(font: Font, lines: MutableList<ClientTooltipComponent>, xo: Int, yo: Int, positioner: ClientTooltipPositioner, style: Identifier?, original: Operation<Void>) {
+        val oldStyle = if (style?.namespace == "hypixel_skyblock") null else style
+        original.call(font, lines, xo, yo, positioner, oldStyle)
+    }
+
+    @JvmStatic
     fun setOverlayHook(overlay: Overlay?, ci: CallbackInfo) {
         if (overlay is LoadingOverlay && isLoading) ci.cancel()
         else if (overlay == null && isLoading) isLoading = false
     }
 
     @JvmStatic
-    fun resourcePackPushHook() {
+    fun resourcePackPushHook(packet: ClientboundResourcePackPushPacket) {
+        PackDisabler.logger.info("hypixel pack url: ${packet.url}")
         isLoading = true
     }
 }
