@@ -1,0 +1,10 @@
+{
+  "modmenu.descriptionTranslation.${id}": "${description}",
+  "${id}": {
+    "${id}": "${name}",
+    "example": {
+      "name": "Example",
+      "description": "Example description."
+    }
+  }
+}
