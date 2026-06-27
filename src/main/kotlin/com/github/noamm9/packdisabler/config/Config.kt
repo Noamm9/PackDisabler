@@ -9,13 +9,15 @@ import dev.isxander.yacl3.config.v2.api.ConfigClassHandler
 import dev.isxander.yacl3.config.v2.api.SerialEntry
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder
 import dev.isxander.yacl3.platform.YACLPlatform
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 
 class Config {
     @SerialEntry var blockPackDownload = false
+    @SerialEntry var hidePackDownloadScreen = false
     @SerialEntry var revertItems = false
-    @SerialEntry var revertTooltip = false
+    @SerialEntry var disableGlobalPackOverrides = false
 
     companion object {
         val handler = ConfigClassHandler.createBuilder(Config::class.java).serializer {
@@ -36,6 +38,13 @@ class Config {
                 }.build())
 
                 option(Option.createBuilder<Boolean>().apply {
+                    name(Component.literal("Hide Pack Download Screen"))
+                    description(OptionDescription.of(Component.literal("Hides the resource reload screen while Hypixel's Skyblock pack is loading.")))
+                    binding(defaults.hidePackDownloadScreen, { config.hidePackDownloadScreen }, { config.hidePackDownloadScreen = it })
+                    controller(BooleanControllerBuilder::create)
+                }.build())
+
+                option(Option.createBuilder<Boolean>().apply {
                     name(Component.literal("Revert Item Textures"))
                     description(OptionDescription.of(Component.literal("Converts Skyblock item textures back to their vanilla equivalents.")))
                     binding(defaults.revertItems, { config.revertItems }, { config.revertItems = it })
@@ -43,9 +52,14 @@ class Config {
                 }.build())
 
                 option(Option.createBuilder<Boolean>().apply {
-                    name(Component.literal("Revert Tooltip Textures"))
-                    description(OptionDescription.of(Component.literal("Converts Skyblock tooltip textures back to their vanilla equivalents. Requires Block Pack Download to be enabled")))
-                    binding(defaults.revertTooltip, { config.revertTooltip }, { config.revertTooltip = it })
+                    name(Component.literal("Disable Global Pack Overrides"))
+                    description(OptionDescription.of(Component.literal("Prevents Hypixel's Skyblock pack from overriding Minecraft resources, including tooltips, while preserving optional item textures.")))
+                    binding(defaults.disableGlobalPackOverrides, { config.disableGlobalPackOverrides }, {
+                        if (config.disableGlobalPackOverrides != it) {
+                            config.disableGlobalPackOverrides = it
+                            Minecraft.getInstance().reloadResourcePacks()
+                        }
+                    })
                     controller(BooleanControllerBuilder::create)
                 }.build())
 
