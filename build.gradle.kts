@@ -134,7 +134,7 @@ java {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(if (obfuscated) JvmTarget.JVM_21 else JvmTarget.JVM_24)
+        jvmTarget.set(if (obfuscated) JvmTarget.JVM_21 else JvmTarget.JVM_25)
     }
 }
 
