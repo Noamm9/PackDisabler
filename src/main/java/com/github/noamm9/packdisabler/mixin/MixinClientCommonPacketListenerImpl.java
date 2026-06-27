@@ -19,6 +19,6 @@ public class MixinClientCommonPacketListenerImpl {
         )
     )
     private void onResourcePack(ClientboundResourcePackPushPacket packet, CallbackInfo ci) {
-        MixinHooks.resourcePackPushHook();
+        MixinHooks.resourcePackPushHook(packet);
     }
 }
