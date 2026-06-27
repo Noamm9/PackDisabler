@@ -17,13 +17,7 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build all versions
-        run: |
-          ./gradlew --no-daemon stonecutterSwitchTo1.21.11
-          ./gradlew --no-daemon buildActive
-          ./gradlew --no-daemon stonecutterSwitchTo26.1.2
-          ./gradlew --no-daemon buildActive
-          ./gradlew --no-daemon stonecutterSwitchTo26.2
-          ./gradlew --no-daemon buildActive
+        run: ./gradlew build
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
