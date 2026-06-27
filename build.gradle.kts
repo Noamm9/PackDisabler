@@ -52,11 +52,6 @@ val deps = Dependencies()
 version = "${mod.version}+${mc.version}"
 group = mod.group
 base { archivesName.set(mod.id) }
-
-stonecutter {
-
-}
-
 blossom {
     replaceToken("@MODID@", mod.id)
 }
@@ -88,10 +83,6 @@ fletchingTable {
     mixins.create("main") {
         mixin("default", "${mod.id}.mixins.json")
     }
-
-    lang.create("main") {
-        patterns.add("assets/${mod.id}/lang/**")
-    }
 }
 
 repositories {
@@ -122,11 +113,15 @@ dependencies {
     add("include", mixinsquared)
 }
 
-if (obfuscated) java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+
+
+java {
+    val javaVersion = if (obfuscated) JavaVersion.VERSION_21 else JavaVersion.VERSION_25
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 }
-if (obfuscated) kotlin { jvmToolchain(21) }
+
+kotlin { jvmToolchain(if (obfuscated) 21 else 25) }
 
 tasks.processResources {
     val props = buildMap {

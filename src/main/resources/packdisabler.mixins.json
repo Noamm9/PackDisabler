@@ -1,6 +1,8 @@
 {
-	"required": true,
-	"package": "com.github.noamm9.packdisabler.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"injectors": { "defaultRequire": 1 }
+  "required": true,
+  "package": "com.github.noamm9.packdisabler.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
