@@ -48,7 +48,7 @@ object MixinHooks {
     }
 
     @JvmStatic
-    fun skullProfileHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<ResolvableProfile>): ResolvableProfile {
+    fun skullProfileHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<ResolvableProfile?>): ResolvableProfile? {
         val currentProfile = original.call(stack, key)
         if (! Config.INSTANCE.revertItems) return currentProfile
         if (stack.isEmpty) return currentProfile
