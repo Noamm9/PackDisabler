@@ -1,8 +1,4 @@
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
-import org.codehaus.groovy.runtime.DefaultGroovyMethods.mixin
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.kotlin.dsl.the
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -13,7 +9,7 @@ plugins {
     id("net.fabricmc.fabric-loom-remap") apply false
 }
 
-val obfuscated = property("mod.mc_version").toString().let { !it.startsWith("26.") }
+val obfuscated = property("mod.mc_version").toString().let { ! it.startsWith("26.") }
 plugins.apply(if (obfuscated) "net.fabricmc.fabric-loom-remap" else "net.fabricmc.fabric-loom")
 
 val loom = the<LoomGradleExtensionAPI>()
@@ -120,23 +116,17 @@ dependencies {
     modImplementation("com.terraformersmc:modmenu:${deps.modmenuVersion}")
     modImplementation("dev.isxander:yet-another-config-lib:${deps.yaclVersion}-fabric")
 
-    val mixinconstraints = implementation("com.moulberry:mixinconstraints:${deps.mixinconstraintsVersion}")!!
-    val mixinsquared = implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${deps.mixinsquaredVersion}")!!)!!
+    val mixinconstraints = implementation("com.moulberry:mixinconstraints:${deps.mixinconstraintsVersion}") !!
+    val mixinsquared = implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${deps.mixinsquaredVersion}") !!) !!
     add("include", mixinconstraints)
     add("include", mixinsquared)
 }
 
-java {
-    val javaVersion = if (obfuscated) JavaVersion.VERSION_21 else JavaVersion.VERSION_25
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
+if (obfuscated) java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(if (obfuscated) JvmTarget.JVM_21 else JvmTarget.JVM_25)
-    }
-}
+if (obfuscated) kotlin { jvmToolchain(21) }
 
 tasks.processResources {
     val props = buildMap {
