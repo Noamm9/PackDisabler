@@ -19,15 +19,13 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.ResolvableProfile
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
-import java.util.*
 
 /**
  * ideally it would be best to set the stack componnents to the old ones permentnty
  * however doing that could break future mods/texturepacks
  */
 object MixinHooks {
-    private var isLoading = false // used to hide the loading screen
-    var skyblockPackID: UUID? = null
+    private var isLoading = false
 
     @JvmStatic
     fun itemModelHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<Identifier>): Identifier {
@@ -36,12 +34,12 @@ object MixinHooks {
         if (stack.isEmpty) return currentModel
         if (currentModel.namespace != "hypixel_skyblock") return currentModel
 
-        val skyblockID = stack.skyblockId
         val customData = stack.customData
+        val skyblockID = skyblockId(customData)
 
         // quiver arrows have no skyblock id
         val oldModel = when {
-            skyblockID != null -> PackDisabler.idToLocation[stack.skyblockId]
+            skyblockID != null -> PackDisabler.idToLocation[skyblockID]
             customData.contains("quiver_arrow") -> Items.ARROW.components()[DataComponents.ITEM_MODEL]
             else -> null
         }
@@ -75,11 +73,9 @@ object MixinHooks {
     @JvmStatic
     fun resourcePackPushHook(packet: ClientboundResourcePackPushPacket, ci: CallbackInfo) {
         if (! packet.url.startsWith("https://resourcepacks2.hypixel.net/SkyBlockResourcePack/")) return
-        Utils.print("hypixel pack url: ${packet.url}")
         isLoading = true
 
         if (! Config.INSTANCE.blockPackDownload) return
-        Utils.print("blocked pack url: ${packet.url}")
         val connection = Minecraft.getInstance().connection ?: return
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.ACCEPTED))
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED))
