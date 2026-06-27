@@ -1,45 +1,55 @@
 package com.github.noamm9.packdisabler.config
 
-import dev.isxander.yacl3.api.*
-import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder
+import dev.isxander.yacl3.api.ConfigCategory
+import dev.isxander.yacl3.api.Option
+import dev.isxander.yacl3.api.OptionDescription
+import dev.isxander.yacl3.api.YetAnotherConfigLib
+import dev.isxander.yacl3.api.controller.BooleanControllerBuilder
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler
 import dev.isxander.yacl3.config.v2.api.SerialEntry
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder
 import dev.isxander.yacl3.platform.YACLPlatform
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
-import kotlin.jvm.java
 
 class Config {
-    @SerialEntry var myCoolBoolean = true
-    @SerialEntry var myCoolInteger = 5
-    @SerialEntry(comment = "This string is amazing") var myCoolString = "How amazing!"
+    @SerialEntry var blockPackDownload = false
+    @SerialEntry var revertItems = false
+    @SerialEntry var revertTooltip = false
 
     companion object {
         val handler = ConfigClassHandler.createBuilder(Config::class.java).serializer {
-            GsonConfigSerializerBuilder.create(it).setPath(
-                YACLPlatform.getConfigDir().resolve("@MODID@.json5")
-            ).build()
+            GsonConfigSerializerBuilder.create(it).setPath(YACLPlatform.getConfigDir().resolve("@MODID@").resolve("config.json")).build()
         }.build()
 
+        val INSTANCE get() = handler.instance()
+
         fun createScreen(parent: Screen?) = YetAnotherConfigLib.create(handler) { defaults, config, builder ->
-            builder.apply {
-                title(Component.literal("Used for narration. Could be used to render a title in the future."))
-                category(ConfigCategory.createBuilder().apply {
-                    name(Component.literal("Name of the category"))
-                    tooltip(Component.literal("This text will appear as a tooltip when you hover or focus the button with Tab. There is no need to add \n to wrap as YACL will do it for you."))
-                    group(OptionGroup.createBuilder().apply {
-                        name(Component.literal("Name of the group"))
-                        description(OptionDescription.of(Component.literal("This text will appear when you hover over the name or focus on the collapse button with Tab.")))
-                        option(Option.createBuilder<Boolean>().apply {
-                            name(Component.literal("Boolean Option"))
-                            description(OptionDescription.of(Component.literal("This text will appear as a tooltip when you hover over the option.")))
-                            binding(defaults.myCoolBoolean, { config.myCoolBoolean }, { config.myCoolBoolean = it })
-                            controller(TickBoxControllerBuilder::create)
-                        }.build()).build()
-                    }.build()).build()
-                }.build()).build()
-            }
+            builder.title(Component.literal("Pack Disabler")).category(ConfigCategory.createBuilder().apply {
+                name(Component.literal("General"))
+
+                option(Option.createBuilder<Boolean>().apply {
+                    name(Component.literal("Block Pack Download"))
+                    description(OptionDescription.of(Component.literal("Blocks the resource pack download packet sent by Hypixel when joining Skyblock.")))
+                    binding(defaults.blockPackDownload, { config.blockPackDownload }, { config.blockPackDownload = it })
+                    controller(BooleanControllerBuilder::create)
+                }.build())
+
+                option(Option.createBuilder<Boolean>().apply {
+                    name(Component.literal("Revert Item Textures"))
+                    description(OptionDescription.of(Component.literal("Converts Skyblock item textures back to their vanilla equivalents.")))
+                    binding(defaults.revertItems, { config.revertItems }, { config.revertItems = it })
+                    controller(BooleanControllerBuilder::create)
+                }.build())
+
+                option(Option.createBuilder<Boolean>().apply {
+                    name(Component.literal("Revert Tooltip Textures"))
+                    description(OptionDescription.of(Component.literal("Converts Skyblock tooltip textures back to their vanilla equivalents. Requires Block Pack Download to be enabled")))
+                    binding(defaults.revertTooltip, { config.revertTooltip }, { config.revertTooltip = it })
+                    controller(BooleanControllerBuilder::create)
+                }.build())
+
+            }.build())
         }.generateScreen(parent)
     }
 }

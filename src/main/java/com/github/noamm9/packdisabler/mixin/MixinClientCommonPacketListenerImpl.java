@@ -16,9 +16,10 @@ public class MixinClientCommonPacketListenerImpl {
             value = "INVOKE",
             target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V",
             shift = At.Shift.AFTER
-        )
+        ),
+        cancellable = true
     )
     private void onResourcePack(ClientboundResourcePackPushPacket packet, CallbackInfo ci) {
-        MixinHooks.resourcePackPushHook(packet);
+        MixinHooks.resourcePackPushHook(packet, ci);
     }
 }

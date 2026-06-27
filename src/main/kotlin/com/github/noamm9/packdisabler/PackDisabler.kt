@@ -18,18 +18,19 @@ import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
 import org.slf4j.LoggerFactory
 import java.net.URI
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.*
+import java.util.concurrent.*
 import javax.net.ssl.HttpsURLConnection
 
 @Entrypoint(Entrypoint.CLIENT)
-class PackDisabler : ClientModInitializer {
+class PackDisabler: ClientModInitializer {
     companion object {
         val logger = LoggerFactory.getLogger(PackDisabler::class.java)
         var idToLocation = ConcurrentHashMap<String, Identifier>()
         val idToSkullProfile = ConcurrentHashMap<String, ResolvableProfile>()
     }
 
+    // todo cache
     override fun onInitializeClient() {
         Config.handler.load()
 
@@ -47,10 +48,10 @@ class PackDisabler : ClientModInitializer {
                         val texture = item["texture"]?.jsonPrimitive?.content
 
                         idToLocation[sbid] = Identifier.parse(model)
-                        if (!texture.isNullOrEmpty()) idToSkullProfile[sbid] = createProfile(sbid, texture)
+                        if (! texture.isNullOrEmpty()) idToSkullProfile[sbid] = createProfile(sbid, texture)
                     }
 
-                    logger.info("PackDisabler finished loading ${idToLocation.size} items")
+                    logger.info("finished loading ${idToLocation.size} items")
                 }
                 catch (e: Exception) {
                     logger.error("Failed to fetch Skyblock items", e)

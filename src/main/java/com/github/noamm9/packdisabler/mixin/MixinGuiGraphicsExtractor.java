@@ -11,12 +11,16 @@ import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import java.util.List;
 
-//? if = 1.21.11 {
+//? if =1.21.11 {
 import net.minecraft.client.gui.GuiGraphics;
-@Mixin(GuiGraphics.class)
 //?} else {
 /*import net.minecraft.client.gui.GuiGraphicsExtractor;
-@Mixin(GuiGraphicsExtractor.class)
+*///?}
+
+//? if =1.21.11 {
+@Mixin(GuiGraphics.class)
+//?} else {
+/*@Mixin(GuiGraphicsExtractor.class)
 *///?}
 public class MixinGuiGraphicsExtractor {
 

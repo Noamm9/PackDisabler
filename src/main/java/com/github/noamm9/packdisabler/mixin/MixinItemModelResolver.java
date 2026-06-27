@@ -16,7 +16,12 @@ public class MixinItemModelResolver {
         method = "appendItemLayers",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;")
+            //? if =1.21.11 {
+            target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;"
+            //?} else {
+            /*target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;"
+            *///?}
+        )
     )
     private Object appendItemLayerHook(ItemStack instance, DataComponentType dataComponentType, Operation<Identifier> original) {
         return MixinHooks.itemModelHook(instance, dataComponentType, original);
