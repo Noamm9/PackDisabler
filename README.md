@@ -1,4 +1,4 @@
-<a href="https://ko-fi.com/noamm9" target="_blank">
+<a href="https://ko-fi.com/noamm" target="_blank">
   <img alt="kofi-singular-alt" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/kofi-singular-alt_vector.svg">
 </a>
 
