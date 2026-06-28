@@ -26,8 +26,8 @@ import javax.net.ssl.HttpsURLConnection
 class PackDisabler: ClientModInitializer {
     companion object {
         val logger = LoggerFactory.getLogger(PackDisabler::class.java)
-        var idToLocation = ConcurrentHashMap<String, Identifier>()
-        val idToSkullProfile = ConcurrentHashMap<String, ResolvableProfile>()
+        var idToLocation = HashMap<String, Identifier>()
+        val idToSkullProfile = HashMap<String, ResolvableProfile>()
 
         private val cacheFile = YACLPlatform.getConfigDir().resolve("@MODID@").resolve("cache").toFile()
         private val TTL_MS = TimeUnit.DAYS.toMillis(3)

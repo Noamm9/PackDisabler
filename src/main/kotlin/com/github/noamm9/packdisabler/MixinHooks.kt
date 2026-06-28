@@ -12,6 +12,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner
 import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.component.DataComponents
+import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import net.minecraft.resources.Identifier
@@ -25,12 +26,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
  * however doing that could break future mods/texturepacks
  */
 object MixinHooks {
-    private var isLoading = false
+    @Volatile private var isLoading = false
 
     @JvmStatic
     fun itemModelHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<Identifier>): Identifier {
         val currentModel = original.call(stack, key)
-        if (! Config.INSTANCE.revertItems) return currentModel
+        if (! Config.revertItems) return currentModel
         if (stack.isEmpty) return currentModel
         if (currentModel.namespace != "hypixel_skyblock") return currentModel
 
@@ -50,7 +51,7 @@ object MixinHooks {
     @JvmStatic
     fun skullProfileHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<ResolvableProfile?>): ResolvableProfile? {
         val currentProfile = original.call(stack, key)
-        if (! Config.INSTANCE.revertItems) return currentProfile
+        if (! Config.revertItems) return currentProfile
         if (stack.isEmpty) return currentProfile
         val skyblockID = stack.skyblockId ?: return currentProfile
 
@@ -60,7 +61,7 @@ object MixinHooks {
 
     @JvmStatic
     fun renderToolTipHook(font: Font, lines: MutableList<ClientTooltipComponent>, xo: Int, yo: Int, positioner: ClientTooltipPositioner, style: Identifier?, original: Operation<Void>) {
-        val oldStyle = if (Config.INSTANCE.revertTooltip && style?.namespace == "hypixel_skyblock") null else style
+        val oldStyle = if (Config.disableGlobalPackOverrides && style?.namespace == "hypixel_skyblock") null else style
         original.call(font, lines, xo, yo, positioner, oldStyle)
     }
 
@@ -73,12 +74,32 @@ object MixinHooks {
     @JvmStatic
     fun resourcePackPushHook(packet: ClientboundResourcePackPushPacket, ci: CallbackInfo) {
         if (! packet.url.startsWith("https://resourcepacks2.hypixel.net/SkyBlockResourcePack/")) return
-        isLoading = true
+        if (Config.hidePackDownloadScreen) isLoading = true
+        ResourceOverrides.addPack(packet.id)
 
-        if (! Config.INSTANCE.blockPackDownload) return
+        if (! Config.blockPackDownload) return
         val connection = Minecraft.getInstance().connection ?: return
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.ACCEPTED))
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED))
+        ci.cancel()
+    }
+
+    @JvmStatic
+    fun resourcePackPopHook(packet: ClientboundResourcePackPopPacket) {
+        if (ResourceOverrides.removePack(packet.id.orElse(null))) isLoading = false
+    }
+
+    @JvmStatic
+    fun disconnectHook() {
+        ResourceOverrides.clear()
+        isLoading = false
+    }
+
+    @JvmStatic
+    fun skipHypixelPack(namespace: String, packId: String, ci: CallbackInfo) {
+        if (! Config.disableGlobalPackOverrides) return
+        if (namespace != Identifier.DEFAULT_NAMESPACE) return
+        if (! ResourceOverrides.fromHypixelPack(packId)) return
         ci.cancel()
     }
 }
