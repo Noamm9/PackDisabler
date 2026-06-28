@@ -15,7 +15,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
@@ -25,6 +24,12 @@ import java.net.URI
 import java.util.*
 import java.util.concurrent.*
 import javax.net.ssl.HttpsURLConnection
+
+//? =1.21.11 {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
+*///?} else {
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
+//?}
 
 @Entrypoint(Entrypoint.CLIENT)
 class PackDisabler: ClientModInitializer {
@@ -43,7 +48,13 @@ class PackDisabler: ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             dispatcher.register(literal("@MODID@").executes {
                 val mc = Minecraft.getInstance()
-                mc.execute { mc.setScreen(Config.createScreen(null)) }
+                mc.execute {
+                    //? <26.2 {
+                    /*mc.setScreen(Config.createScreen(null))
+                    *///?} else {
+                    mc.gui.setScreen(Config.createScreen(null))
+                    //?}
+                }
                 Command.SINGLE_SUCCESS
             })
         }
