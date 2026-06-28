@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import com.mojang.authlib.properties.PropertyMap
+import com.mojang.brigadier.Command
 import dev.isxander.yacl3.platform.YACLPlatform
 import dev.kikugie.fletching_table.annotation.fabric.Entrypoint
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +15,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
 import org.slf4j.LoggerFactory
@@ -35,6 +39,14 @@ class PackDisabler: ClientModInitializer {
 
     override fun onInitializeClient() {
         Config.handler.load()
+
+        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
+            dispatcher.register(literal("@MODID@").executes {
+                val mc = Minecraft.getInstance()
+                mc.execute { mc.setScreen(Config.createScreen(null)) }
+                Command.SINGLE_SUCCESS
+            })
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
