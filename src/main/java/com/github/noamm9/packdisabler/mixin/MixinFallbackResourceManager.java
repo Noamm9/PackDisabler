@@ -1,5 +1,6 @@
 package com.github.noamm9.packdisabler.mixin;
 
+import com.github.noamm9.packdisabler.FilteredPackResources;
 import com.github.noamm9.packdisabler.MixinHooks;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackResources;
@@ -8,8 +9,8 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import java.util.function.Predicate;
 
@@ -17,18 +18,22 @@ import java.util.function.Predicate;
 public class MixinFallbackResourceManager {
     @Shadow @Final private String namespace;
 
-    @Inject(method = "push(Lnet/minecraft/server/packs/PackResources;)V", at = @At("HEAD"), cancellable = true)
-    private void skipHypixelPack(PackResources pack, CallbackInfo ci) {
-        MixinHooks.skipHypixelPack(namespace, pack.packId(), ci);
-    }
+    @ModifyArgs(
+        method = {
+            "push(Lnet/minecraft/server/packs/PackResources;)V",
+            "push(Lnet/minecraft/server/packs/PackResources;Ljava/util/function/Predicate;)V",
+            "pushFilterOnly"
+        },
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/server/packs/resources/FallbackResourceManager;pushInternal(Ljava/lang/String;Lnet/minecraft/server/packs/PackResources;Ljava/util/function/Predicate;)V"
+        )
+    )
+    private void filterHypixelPack(Args args) {
+        if (!MixinHooks.shouldFilterHypixelPack(namespace, args.get(0))) return;
 
-    @Inject(method = "push(Lnet/minecraft/server/packs/PackResources;Ljava/util/function/Predicate;)V", at = @At("HEAD"), cancellable = true)
-    private void skipFilteredHypixelPack(PackResources pack, Predicate<Identifier> filter, CallbackInfo ci) {
-        MixinHooks.skipHypixelPack(namespace, pack.packId(), ci);
-    }
-
-    @Inject(method = "pushFilterOnly", at = @At("HEAD"), cancellable = true)
-    private void skipHypixelPackFilter(String packId, Predicate<Identifier> filter, CallbackInfo ci) {
-        MixinHooks.skipHypixelPack(namespace, packId, ci);
+        PackResources pack = args.get(1);
+        if (pack != null) args.set(1, new FilteredPackResources(pack));
+        else args.set(2, (Predicate<Identifier>) id -> false);
     }
 }

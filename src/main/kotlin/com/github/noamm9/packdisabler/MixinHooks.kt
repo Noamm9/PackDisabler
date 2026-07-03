@@ -96,10 +96,6 @@ object MixinHooks {
     }
 
     @JvmStatic
-    fun skipHypixelPack(namespace: String, packId: String, ci: CallbackInfo) {
-        if (! Config.disableGlobalPackOverrides) return
-        if (namespace != Identifier.DEFAULT_NAMESPACE) return
-        if (! ResourceOverrides.fromHypixelPack(packId)) return
-        ci.cancel()
-    }
+    fun shouldFilterHypixelPack(namespace: String, packId: String) = Config.disableGlobalPackOverrides &&
+        namespace == Identifier.DEFAULT_NAMESPACE && ResourceOverrides.fromHypixelPack(packId)
 }
