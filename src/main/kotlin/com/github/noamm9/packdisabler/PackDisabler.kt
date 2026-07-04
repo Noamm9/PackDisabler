@@ -26,10 +26,10 @@ import java.util.concurrent.*
 import javax.net.ssl.HttpsURLConnection
 
 //? =1.21.11 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
-*///?} else {
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
-//?}
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
+//?} else {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
+*///?}
 
 @Entrypoint(Entrypoint.CLIENT)
 class PackDisabler: ClientModInitializer {
@@ -50,10 +50,10 @@ class PackDisabler: ClientModInitializer {
                 val mc = Minecraft.getInstance()
                 mc.execute {
                     //? <26.2 {
-                    /*mc.setScreen(Config.createScreen(null))
-                    *///?} else {
-                    mc.gui.setScreen(Config.createScreen(null))
-                    //?}
+                    mc.setScreen(Config.createScreen(null))
+                    //?} else {
+                    /*mc.gui.setScreen(Config.createScreen(null))
+                    *///?}
                 }
                 Command.SINGLE_SUCCESS
             })
