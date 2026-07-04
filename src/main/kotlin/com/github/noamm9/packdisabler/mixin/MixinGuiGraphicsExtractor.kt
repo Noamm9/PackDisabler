@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.client.gui.Font
 //? if >1.21.11 {
 /*import net.minecraft.client.gui.GuiGraphicsExtractor
-*///?} else
+*///?} else {
 import net.minecraft.client.gui.GuiGraphics
 //?}
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
@@ -16,14 +16,14 @@ import org.spongepowered.asm.mixin.Mixin
 
 //? if >1.21.11 {
 /*@Mixin(GuiGraphicsExtractor::class)
-*///?} else
+*///?} else {
 @Mixin(GuiGraphics::class)
 //?}
 class MixinGuiGraphicsExtractor {
 
     //? if >1.21.11 {
     /*@WrapMethod(method = ["tooltip"])
-    *///?} else
+    *///?} else {
     @WrapMethod(method = ["renderTooltip"])
     //?}
     private fun onRenderTooltip(font: Font, lines: MutableList<ClientTooltipComponent>, x: Int, y: Int, positioner: ClientTooltipPositioner, style: Identifier?, original: Operation<Void>) {
