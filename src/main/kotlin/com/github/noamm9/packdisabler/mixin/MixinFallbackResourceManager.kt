@@ -16,7 +16,7 @@ import java.util.function.*
 
 @Mixin(FallbackResourceManager::class)
 class MixinFallbackResourceManager {
-    @Shadow @Final private val namespace: String? = null
+    @Shadow @Final private lateinit var namespace: String
 
     @ModifyArgs(
         method = [

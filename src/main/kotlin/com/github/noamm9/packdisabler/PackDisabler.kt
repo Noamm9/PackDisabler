@@ -50,10 +50,10 @@ class PackDisabler: ClientModInitializer {
                 val mc = Minecraft.getInstance()
                 mc.execute {
                     //? <26.2 {
-                    /*mc.setScreen(Config.createScreen(null))
-                    *///?} else {
-                    mc.gui.setScreen(Config.createScreen(null))
-                    //?}
+                    mc.setScreen(Config.createScreen(null))
+                    //?} else {
+                    /*mc.gui.setScreen(Config.createScreen(null))
+                    *///?}
                 }
                 Command.SINGLE_SUCCESS
             })
