@@ -29,6 +29,8 @@ import javax.net.ssl.HttpsURLConnection
 /*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 *///?} else {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
+import net.fabricmc.loader.api.FabricLoader
+import java.io.File
 //?}
 
 @Entrypoint(Entrypoint.CLIENT)
@@ -38,8 +40,12 @@ class PackDisabler: ClientModInitializer {
         var idToLocation = HashMap<String, Identifier>()
         val idToSkullProfile = HashMap<String, ResolvableProfile>()
 
-        private val cacheFile = YACLPlatform.getConfigDir().resolve("@MODID@").resolve("cache").toFile()
-        private val TTL_MS = TimeUnit.DAYS.toMillis(3)
+        val cacheDir = YACLPlatform.getConfigDir().resolve("@MODID@").resolve("cache")
+        private val cacheFile = cacheDir.resolve("cache").toFile()
+        private val versionFile = cacheDir.resolve("version").toFile()
+        private val cacheTTL = TimeUnit.DAYS.toMillis(1)
+
+        private val version = FabricLoader.getInstance().getModContainer("@MODID@").get().metadata.version.friendlyString
     }
 
     override fun onInitializeClient() {
@@ -79,9 +85,20 @@ class PackDisabler: ClientModInitializer {
     }
 
     private fun getData(): String {
-        if (cacheFile.exists() && System.currentTimeMillis() - cacheFile.lastModified() < TTL_MS) {
+        cacheDir.toFile().mkdirs()
+
+        val cachedVersion = versionFile.takeIf(File::exists)?.readText()
+        val versionMatches = cachedVersion == version
+        val notExpired = cacheFile.exists() && System.currentTimeMillis() - cacheFile.lastModified() < cacheTTL
+
+        if (versionMatches && notExpired) {
             logger.info("Loading Skyblock items from cache")
             return cacheFile.readText()
+        }
+
+        if (!versionMatches && cacheFile.exists()) {
+            logger.info("Mod version changed. invalidating cache")
+            cacheFile.delete()
         }
 
         logger.info("Fetching Skyblock items from API")
@@ -90,7 +107,10 @@ class PackDisabler: ClientModInitializer {
         connection.setRequestProperty("User-Agent", this::class.simpleName)
         connection.requestMethod = "GET"
 
-        return connection.inputStream.bufferedReader().readText().also(cacheFile::writeText)
+        return connection.inputStream.bufferedReader().readText().also {
+            versionFile.writeText(version)
+            cacheFile.writeText(it)
+        }
     }
 
     private fun createProfile(sbid: String, texture: String): ResolvableProfile {

@@ -31,7 +31,7 @@ class MixinClientCommonPacketListenerImpl {
     private fun onResourcePack(packet: ClientboundResourcePackPushPacket, ci: CallbackInfo) {
         if (! packet.url.contains("hypixel.net") || ! packet.url.contains("SkyBlock")) return
         ResourceOverrides.addPack(packet.id)
-        if (! Config.blockPackDownload) return
+        if (! Config.handler.instance().blockPackDownload) return
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.ACCEPTED))
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED))
         ci.cancel()

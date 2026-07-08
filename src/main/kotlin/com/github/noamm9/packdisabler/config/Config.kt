@@ -1,9 +1,7 @@
 package com.github.noamm9.packdisabler.config
 
-import dev.isxander.yacl3.api.ConfigCategory
-import dev.isxander.yacl3.api.Option
-import dev.isxander.yacl3.api.OptionDescription
-import dev.isxander.yacl3.api.YetAnotherConfigLib
+import com.github.noamm9.packdisabler.PackDisabler
+import dev.isxander.yacl3.api.*
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler
 import dev.isxander.yacl3.config.v2.api.SerialEntry
@@ -20,8 +18,6 @@ class Config {
             GsonConfigSerializerBuilder.create(it).setPath(YACLPlatform.getConfigDir().resolve("@MODID@").resolve("config.json")).build()
         }.build()
 
-        inline val blockPackDownload get() = handler.instance().blockPackDownload
-
         fun createScreen(parent: Screen?) = YetAnotherConfigLib.create(handler) { defaults, config, builder ->
             builder.title(Component.literal("Pack Disabler")).category(ConfigCategory.createBuilder().apply {
                 name(Component.literal("General"))
@@ -31,6 +27,15 @@ class Config {
                     description(OptionDescription.of(Component.literal("Blocks the resource pack download packet sent by Hypixel when joining Skyblock.")))
                     binding(defaults.blockPackDownload, { config.blockPackDownload }, { config.blockPackDownload = it })
                     controller(BooleanControllerBuilder::create)
+                }.build())
+
+                option(ButtonOption.createBuilder().apply {
+                    name(Component.literal("Clear Cache"))
+                    description(OptionDescription.of(Component.literal("Clears the cache file of the item api.")))
+                    action { _, _ ->
+                        PackDisabler.cacheDir.toFile().deleteRecursively()
+                        PackDisabler.logger.info("Cleared cache file")
+                    }
                 }.build())
             }.build())
         }.generateScreen(parent)
