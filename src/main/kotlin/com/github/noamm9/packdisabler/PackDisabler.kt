@@ -24,13 +24,13 @@ import java.net.URI
 import java.util.*
 import java.util.concurrent.*
 import javax.net.ssl.HttpsURLConnection
+import net.fabricmc.loader.api.FabricLoader
+import java.io.File
 
 //? =1.21.11 {
 /*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 *///?} else {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
-import net.fabricmc.loader.api.FabricLoader
-import java.io.File
 //?}
 
 @Entrypoint(Entrypoint.CLIENT)
