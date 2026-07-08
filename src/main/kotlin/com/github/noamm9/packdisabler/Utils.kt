@@ -9,6 +9,8 @@ import kotlin.jvm.optionals.getOrNull
 object Utils {
     val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
     val ItemStack.skyblockId get() = skyblockId(customData)
+    val ItemStack.skyblockSkinId get() = normalizedId(customData, "skin")
 
-    val skyblockId = fun(tag: CompoundTag) = tag.getString("id").getOrNull()?.replace(":", "-")
+    private val normalizedId = fun(tag: CompoundTag, key: String) = tag.getString(key).getOrNull()?.replace(":", "-")
+    val skyblockId = fun(tag: CompoundTag) = normalizedId(tag, "id")
 }
