@@ -63,7 +63,9 @@ class PackDisabler: ClientModInitializer {
             try {
                 for ((sbid, element) in Json.parseToJsonElement(getData()).jsonObject) {
                     val item = element.jsonObject
-                    val model = item["model"]?.jsonPrimitive?.content ?: continue
+                    val model = item["model"]?.jsonPrimitive?.content
+                        ?: item["id"]?.jsonPrimitive?.content
+                        ?: continue
                     val texture = item["texture"]?.jsonPrimitive?.content
 
                     idToLocation[sbid] = Identifier.parse(model)
