@@ -1,13 +1,13 @@
 package com.github.noamm9.packdisabler.mixin
 
 //? if >1.21.11 {
+import net.minecraft.client.gui.GuiGraphicsExtractor
 //?} else {
 /*import net.minecraft.client.gui.GuiGraphics
 *///?}
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.client.gui.Font
-import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner
 import net.minecraft.resources.Identifier
@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.Mixin
 /*@Mixin(GuiGraphics::class)
 *///?}
 class MixinGuiGraphicsExtractor {
-
     //? if >1.21.11 {
     @WrapMethod(method = ["tooltip"])
     //?} else {
