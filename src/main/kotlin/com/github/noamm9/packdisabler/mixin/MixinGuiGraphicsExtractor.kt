@@ -1,14 +1,13 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.config.Config
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation
-import net.minecraft.client.gui.Font
 //? if >1.21.11 {
-import net.minecraft.client.gui.GuiGraphicsExtractor
 //?} else {
 /*import net.minecraft.client.gui.GuiGraphics
 *///?}
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation
+import net.minecraft.client.gui.Font
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner
 import net.minecraft.resources.Identifier
@@ -27,7 +26,7 @@ class MixinGuiGraphicsExtractor {
     /*@WrapMethod(method = ["renderTooltip"])
     *///?}
     private fun onRenderTooltip(font: Font, lines: MutableList<ClientTooltipComponent>, x: Int, y: Int, positioner: ClientTooltipPositioner, style: Identifier?, original: Operation<Void>) {
-        val oldStyle = if (Config.disableGlobalPackOverrides && style?.namespace == "hypixel_skyblock") null else style
+        val oldStyle = if (style?.namespace == "hypixel_skyblock") null else style
         original.call(font, lines, x, y, positioner, oldStyle)
     }
 }

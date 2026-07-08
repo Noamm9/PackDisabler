@@ -1,10 +1,9 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.PackDisabler
 import com.github.noamm9.packdisabler.DynamicItemModels
+import com.github.noamm9.packdisabler.PackDisabler
 import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.Utils.skyblockId
-import com.github.noamm9.packdisabler.config.Config
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
 import net.minecraft.client.renderer.item.ItemModelResolver
@@ -27,7 +26,6 @@ class MixinItemModelResolver {
     )
     private fun appendItemLayerHook(instance: ItemStack, dataComponentType: DataComponentType<*>, original: Operation<Identifier>): Any {
         val currentModel = original.call(instance, dataComponentType)
-        if (! Config.revertItems) return currentModel
         if (instance.isEmpty) return currentModel
         if (currentModel.namespace != "hypixel_skyblock") return currentModel
 

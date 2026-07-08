@@ -3,7 +3,6 @@ package com.github.noamm9.packdisabler.mixin
 import com.github.noamm9.packdisabler.PackDisabler
 import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.Utils.skyblockSkinId
-import com.github.noamm9.packdisabler.config.Config
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
 import net.minecraft.client.renderer.special.PlayerHeadSpecialRenderer
@@ -24,7 +23,6 @@ class MixinPlayerHeadSpecialRenderer {
     )
     private fun replaceSkyblockHeadProfile(instance: ItemStack, dataComponentType: DataComponentType<*>, original: Operation<ResolvableProfile?>): Any? {
         val currentProfile = original.call(instance, dataComponentType)
-        if (! Config.revertItems) return currentProfile
         if (instance.isEmpty) return currentProfile
         return instance.skyblockSkinId?.let(PackDisabler.idToSkullProfile::get)
             ?: instance.skyblockId?.let(PackDisabler.idToSkullProfile::get)

@@ -2,7 +2,6 @@ package com.github.noamm9.packdisabler.mixin
 
 import com.github.noamm9.packdisabler.FilteredPackResources
 import com.github.noamm9.packdisabler.ResourceOverrides
-import com.github.noamm9.packdisabler.config.Config
 import net.minecraft.resources.Identifier
 import net.minecraft.server.packs.PackResources
 import net.minecraft.server.packs.resources.FallbackResourceManager
@@ -30,7 +29,6 @@ class MixinFallbackResourceManager {
         )
     )
     private fun filterHypixelPack(args: Args) {
-        if (! Config.disableGlobalPackOverrides) return
         if (namespace != Identifier.DEFAULT_NAMESPACE) return
         if (! ResourceOverrides.fromHypixelPack(args.get(0))) return
 
