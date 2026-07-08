@@ -1,6 +1,7 @@
 package com.github.noamm9.packdisabler.mixin
 
 import com.github.noamm9.packdisabler.PackDisabler
+import com.github.noamm9.packdisabler.DynamicItemModels
 import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.config.Config
@@ -40,6 +41,7 @@ class MixinItemModelResolver {
             else -> null
         }
 
-        return oldModel ?: currentModel
+        if (oldModel == null) return currentModel
+        return skyblockID?.let { DynamicItemModels.resolve(it, instance, customData, oldModel) } ?: oldModel
     }
 }
