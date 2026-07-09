@@ -31,6 +31,7 @@ import java.io.File
 /*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 *///?} else {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
+import net.minecraft.tags.TagEntry.element
 //?}
 
 @Entrypoint(Entrypoint.CLIENT)
@@ -39,13 +40,6 @@ class PackDisabler: ClientModInitializer {
         val logger = LoggerFactory.getLogger(PackDisabler::class.java)
         var idToLocation = HashMap<String, Identifier>()
         val idToSkullProfile = HashMap<String, ResolvableProfile>()
-
-        val cacheDir = YACLPlatform.getConfigDir().resolve("@MODID@").resolve("cache")
-        private val cacheFile = cacheDir.resolve("cache").toFile()
-        private val versionFile = cacheDir.resolve("version").toFile()
-        private val cacheTTL = TimeUnit.DAYS.toMillis(1)
-
-        private val version = FabricLoader.getInstance().getModContainer("@MODID@").get().metadata.version.friendlyString
     }
 
     override fun onInitializeClient() {
@@ -67,7 +61,14 @@ class PackDisabler: ClientModInitializer {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                for ((sbid, element) in Json.parseToJsonElement(getData()).jsonObject) {
+                logger.info("Fetching Skyblock items from API")
+                val url = URI.create("https://api.noamm.org/resources/skyblock-items").toURL()
+                val connection = url.openConnection() as HttpsURLConnection
+                connection.setRequestProperty("User-Agent", this::class.simpleName)
+                connection.requestMethod = "GET"
+                val raw = connection.inputStream.bufferedReader().readText()
+
+                for ((sbid, element) in Json.parseToJsonElement(raw).jsonObject) {
                     val item = element.jsonObject
                     val model = item["model"]?.jsonPrimitive?.content ?: continue
                     val texture = item["texture"]?.jsonPrimitive?.content
@@ -81,35 +82,6 @@ class PackDisabler: ClientModInitializer {
             catch (e: Exception) {
                 logger.error("Failed to load Skyblock items", e)
             }
-        }
-    }
-
-    private fun getData(): String {
-        cacheDir.toFile().mkdirs()
-
-        val cachedVersion = versionFile.takeIf(File::exists)?.readText()
-        val versionMatches = cachedVersion == version
-        val notExpired = cacheFile.exists() && System.currentTimeMillis() - cacheFile.lastModified() < cacheTTL
-
-        if (versionMatches && notExpired) {
-            logger.info("Loading Skyblock items from cache")
-            return cacheFile.readText()
-        }
-
-        if (!versionMatches && cacheFile.exists()) {
-            logger.info("Mod version changed. invalidating cache")
-            cacheFile.delete()
-        }
-
-        logger.info("Fetching Skyblock items from API")
-        val url = URI.create("https://api.noamm.org/resources/skyblock-items").toURL()
-        val connection = url.openConnection() as HttpsURLConnection
-        connection.setRequestProperty("User-Agent", this::class.simpleName)
-        connection.requestMethod = "GET"
-
-        return connection.inputStream.bufferedReader().readText().also {
-            versionFile.writeText(version)
-            cacheFile.writeText(it)
         }
     }
 
