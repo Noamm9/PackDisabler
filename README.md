@@ -1,13 +1,6 @@
-<a href="https://ko-fi.com/noamm" target="_blank">
-  <img alt="kofi-singular-alt" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/kofi-singular-alt_vector.svg">
-</a>
-
+<a href="https://ko-fi.com/noamm" target="_blank"><img alt="kofi-singular-alt" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/kofi-singular-alt_vector.svg"></a>
 <img alt="fabric" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/fabric_vector.svg">
-
-<a href="https://modrinth.com/mod/packdisabler-for-hypixel-skyblock" target="_blank" rel="nofollow">
-  <img alt="modrinth" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg">
-</a>
-
+<a href="https://modrinth.com/mod/packdisabler-for-hypixel-skyblock" target="_blank" rel="nofollow"><img alt="modrinth" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg"></a>
 <img alt="Kotlin" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/built-with/kotlin_vector.svg">
 
 # PackDisabler
