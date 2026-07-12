@@ -1,11 +1,9 @@
 package com.github.noamm9.packdisabler
 
-import com.github.noamm9.packdisabler.config.Config
 import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import com.mojang.authlib.properties.PropertyMap
-import com.mojang.brigadier.Command
 import dev.kikugie.fletching_table.annotation.fabric.Entrypoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,20 +12,12 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
-
-//? =1.21.11 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
-*///?} else {
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
-//?}
 
 @Entrypoint(Entrypoint.CLIENT)
 class PackDisabler: ClientModInitializer {
@@ -38,22 +28,7 @@ class PackDisabler: ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        Config.handler.load()
         HypixelPackLoader.init()
-
-        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            dispatcher.register(literal("@MODID@").executes {
-                val mc = Minecraft.getInstance()
-                mc.execute {
-                    //? <26.2 {
-                    mc.setScreen(Config.createScreen(null))
-                    //?} else {
-                    /*mc.gui.setScreen(Config.createScreen(null))
-                    *///?}
-                }
-                Command.SINGLE_SUCCESS
-            })
-        }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {

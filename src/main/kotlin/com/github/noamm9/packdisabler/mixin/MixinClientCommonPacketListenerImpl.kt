@@ -1,11 +1,7 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.ResourceOverrides
-import com.github.noamm9.packdisabler.config.Config
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl
 import net.minecraft.network.Connection
-import net.minecraft.network.DisconnectionDetails
-import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import org.spongepowered.asm.mixin.Final
