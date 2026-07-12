@@ -1,6 +1,7 @@
 package com.github.noamm9.packdisabler
 
 import com.github.noamm9.packdisabler.PackDisabler.Companion.logger
+import com.github.noamm9.packdisabler.config.Config
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
@@ -18,8 +19,8 @@ import java.net.http.HttpResponse
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.util.Optional
-import java.util.function.Consumer
+import java.util.*
+import java.util.function.*
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
@@ -47,17 +48,17 @@ object HypixelPackLoader {
 
     private fun downloadPack() {
         logger.info("Downloading hypixel pack...")
-        logger.info("packDir: $packDir")
+        val url = Config.get("packUrl") ?: packUrl
         val storedEtag = etagFile.takeIf(Path::exists)?.readText()
 
-        val head = HttpRequest.newBuilder(URI.create(packUrl)).method("HEAD", HttpRequest.BodyPublishers.noBody()).build()
+        val head = HttpRequest.newBuilder(URI.create(url)).method("HEAD", HttpRequest.BodyPublishers.noBody()).build()
         val headResp = httpClient.send(head, HttpResponse.BodyHandlers.discarding())
         val remoteEtag = headResp.headers().firstValue("etag").orElse(null)
 
         if (remoteEtag != null && remoteEtag == storedEtag && packFile.exists()) return
 
         val tmp = Files.createTempFile(packDir, "hypixel_pack", ".tmp")
-        val get = HttpRequest.newBuilder(URI.create(packUrl)).build()
+        val get = HttpRequest.newBuilder(URI.create(url)).build()
         httpClient.send(get, HttpResponse.BodyHandlers.ofFile(tmp))
 
         Files.move(tmp, packFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
