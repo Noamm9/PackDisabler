@@ -4,6 +4,7 @@ import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 import java.util.*
 
+// this was fun to make ngl, It's nice to use something else then json
 object Config {
     private val configDir = FabricLoader.getInstance().configDir.resolve("@MODID@").toFile()
     private val configFile = configDir.resolve("@MODID@.properties")

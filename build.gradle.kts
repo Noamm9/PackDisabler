@@ -50,6 +50,7 @@ group = mod.group
 base { archivesName.set(mod.id) }
 blossom {
     replaceToken("@MODID@", mod.id)
+    replaceToken("@VERSION@", mod.version)
 }
 
 extensions.configure<LoomGradleExtensionAPI> {

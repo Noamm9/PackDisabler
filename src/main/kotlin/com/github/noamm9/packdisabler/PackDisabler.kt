@@ -49,32 +49,49 @@ class PackDisabler: ClientModInitializer {
         KeyMappingHelper.registerKeyMapping(WhitelistManager.keybind)
         //?}
 
+        val commandUsage = listOf(
+            "/@MODID@ whitelist" to "Toggle the pack override for the item in your hand.",
+            "/@MODID@ whitelist <skyblockId>" to "Toggle the pack override for a specific Skyblock item ID.",
+            "/@MODID@ help" to "Show this list.",
+        )
+
+        fun printHelp(): Int {
+            commandUsage.forEach { (usage, desc) -> chat("§7$usage §f- $desc") }
+            return Command.SINGLE_SUCCESS
+        }
+
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            dispatcher.register(ClientCommands.literal("@MODID@").then(ClientCommands.literal("whitelist").apply {
-                executes {
-                    val player = Minecraft.getInstance().player ?: return@executes 0
-                    val sbid = player.mainHandItem.skyblockId
-                    if (sbid == null) {
-                        chat("§cHeld item has no Skyblock ID!§r")
-                        return@executes 0
-                    }
-                    WhitelistManager.toggle(sbid)
-                    Command.SINGLE_SUCCESS
-                }
+            dispatcher.register(ClientCommands.literal("@MODID@").apply {
+                executes { printHelp() }
 
-                then(ClientCommands.argument("sbid", StringArgumentType.string()).apply {
-                    suggests { _, builder ->
-                        idToLocation.keys.filter { it.startsWith(builder.remaining, ignoreCase = true) }.forEach(builder::suggest)
-                        builder.buildFuture()
-                    }
+                then(ClientCommands.literal("help").executes { printHelp() })
 
-                    executes { context ->
-                        val sbid = StringArgumentType.getString(context, "sbid")
+                then(ClientCommands.literal("whitelist").apply {
+                    executes {
+                        val player = Minecraft.getInstance().player ?: return@executes 0
+                        val sbid = player.mainHandItem.skyblockId
+                        if (sbid == null) {
+                            chat("§cHeld item has no Skyblock ID!§r")
+                            return@executes Command.SINGLE_SUCCESS
+                        }
                         WhitelistManager.toggle(sbid)
                         Command.SINGLE_SUCCESS
                     }
+
+                    then(ClientCommands.argument("SkyBlock ID", StringArgumentType.string()).apply {
+                        suggests { _, builder ->
+                            idToLocation.keys.filter { it.startsWith(builder.remaining, ignoreCase = true) }.forEach(builder::suggest)
+                            builder.buildFuture()
+                        }
+
+                        executes { context ->
+                            val sbid = StringArgumentType.getString(context, "sbid")
+                            WhitelistManager.toggle(sbid)
+                            Command.SINGLE_SUCCESS
+                        }
+                    })
                 })
-            }))
+            })
         }
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -82,7 +99,7 @@ class PackDisabler: ClientModInitializer {
                 logger.info("Fetching Skyblock items from API")
                 val url = URI.create("https://api.noamm.org/resources/skyblock-items").toURL()
                 val connection = url.openConnection() as HttpsURLConnection
-                connection.setRequestProperty("User-Agent", this::class.simpleName)
+                connection.setRequestProperty("User-Agent", this::class.simpleName + " @VERSION@")
                 connection.requestMethod = "GET"
                 val raw = connection.inputStream.bufferedReader().readText()
 

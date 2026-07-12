@@ -14,8 +14,8 @@ object Utils {
     val ItemStack.skyblockSkinId get() = normalizedId(customData, "skin")
 
     val skyblockId = fun(tag: CompoundTag) = normalizedId(tag, "id")
+    private val normalizedId = fun(tag: CompoundTag, key: String) = tag.getString(key).getOrNull()?.replace(":", "-")
 
-    @JvmField
     val chat = fun(msg: String) {
         val component = prefix.copy().append(Component.literal(" $msg"))
         val mc = Minecraft.getInstance()
@@ -28,8 +28,6 @@ object Utils {
         mc.gui.hud.chat.addClientSystemMessage(component)
         /*? } */
     }
-
-    private val normalizedId = fun(tag: CompoundTag, key: String) = tag.getString(key).getOrNull()?.replace(":", "-")
 
     private val prefix = Component.empty().apply {
         append(Component.literal("[").withColor(0x4498DB))
