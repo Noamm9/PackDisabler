@@ -32,6 +32,7 @@ class ModData {
 class Dependencies {
     val fabricLoaderVersion = property("deps.fabric_loader_version")
     val fabricKotlinVersion = property("deps.fabric_kotlin_version")
+    val fabricApiVersion = property("deps.fabric_api_version")
     val devauthVersion = property("deps.devauth_version")
 }
 
@@ -92,6 +93,9 @@ dependencies {
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${deps.devauthVersion}")
     modImplementation("net.fabricmc:fabric-loader:${deps.fabricLoaderVersion}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${deps.fabricKotlinVersion}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${deps.fabricApiVersion}+${mc.version}") {
+        exclude(group = "net.fabricmc.fabric-api", module = "fabric-content-registries-v0")
+    }
 }
 
 java {

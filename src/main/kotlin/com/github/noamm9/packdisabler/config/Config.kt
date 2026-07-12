@@ -7,7 +7,6 @@ import java.util.*
 object Config {
     private val configDir = FabricLoader.getInstance().configDir.resolve("@MODID@").toFile()
     private val configFile = configDir.resolve("@MODID@.properties")
-    private const val listSeparator = "\u6767"
     private val config = Properties().apply {
         configFile.takeIf(File::exists)?.reader()?.use(::load)
     }
@@ -15,7 +14,7 @@ object Config {
     fun get(key: String): String? = config.getProperty(key)
     fun set(key: String, value: String) = config.setProperty(key, value).also { save() }
 
-    val whitelist get() = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(listSeparator) ?: emptyList())
+    val whitelist get() = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(" ") ?: emptyList())
 
     private fun save() {
         configFile.parentFile.mkdirs()
@@ -23,7 +22,7 @@ object Config {
     }
 
     class PersistedList(initial: List<String>): ArrayList<String>(initial) {
-        private fun persist() = this@Config.set("whitelist", joinToString(listSeparator))
+        private fun persist() = this@Config.set("whitelist", joinToString(" "))
 
         override fun add(element: String) = super.add(element).also { persist() }
         override fun add(index: Int, element: String) = super.add(index, element).also { persist() }

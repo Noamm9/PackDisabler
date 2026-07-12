@@ -1,9 +1,14 @@
 package com.github.noamm9.packdisabler
 
+import com.github.noamm9.packdisabler.Utils.chat
+import com.github.noamm9.packdisabler.Utils.skyblockId
+import com.github.noamm9.packdisabler.config.WhitelistManager
 import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import com.mojang.authlib.properties.PropertyMap
+import com.mojang.brigadier.Command
+import com.mojang.brigadier.arguments.StringArgumentType
 import dev.kikugie.fletching_table.annotation.fabric.Entrypoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +17,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
+import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
 import org.slf4j.LoggerFactory
@@ -29,6 +38,35 @@ class PackDisabler: ClientModInitializer {
 
     override fun onInitializeClient() {
         HypixelPackLoader.init()
+        KeyMappingHelper.registerKeyMapping(WhitelistManager.keybind)
+
+        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
+            dispatcher.register(ClientCommands.literal("@MODID@").then(ClientCommands.literal("whitelist").apply {
+                executes {
+                    val player = Minecraft.getInstance().player ?: return@executes 0
+                    val sbid = player.mainHandItem.skyblockId
+                    if (sbid == null) {
+                        chat("§cHeld item has no Skyblock ID!§r")
+                        return@executes 0
+                    }
+                    WhitelistManager.toggle(sbid)
+                    Command.SINGLE_SUCCESS
+                }
+
+                then(ClientCommands.argument("sbid", StringArgumentType.string()).apply {
+                    suggests { _, builder ->
+                        idToLocation.keys.filter { it.startsWith(builder.remaining, ignoreCase = true) }.forEach(builder::suggest)
+                        builder.buildFuture()
+                    }
+
+                    executes { context ->
+                        val sbid = StringArgumentType.getString(context, "sbid")
+                        WhitelistManager.toggle(sbid)
+                        Command.SINGLE_SUCCESS
+                    }
+                })
+            }))
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
