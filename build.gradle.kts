@@ -33,11 +33,7 @@ class Dependencies {
     val fabricLoaderVersion = property("deps.fabric_loader_version")
     val fabricKotlinVersion = property("deps.fabric_kotlin_version")
     val fabricApiVersion = property("deps.fabric_api_version")
-    val yaclVersion = property("deps.yacl_version")
-    val modmenuVersion = property("deps.modmenu_version")
     val devauthVersion = property("deps.devauth_version")
-    val mixinconstraintsVersion = property("deps.mixinconstraints_version")
-    val mixinsquaredVersion = property("deps.mixinsquared_version")
 }
 
 class McData {
@@ -70,7 +66,7 @@ extensions.configure<LoomGradleExtensionAPI> {
 
             configureEach {
                 if (mixinJarFile != null) vmArg("-javaagent:$mixinJarFile")
-                vmArg("-XX:+AllowEnhancedClassRedefinition")
+                //vmArg("-XX:+AllowEnhancedClassRedefinition")
 
                 property("mixin.hotSwap", "true")
                 property("mixin.debug.export", "true")
@@ -87,10 +83,7 @@ fletchingTable {
 
 repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1") // DevAuth
-    maven("https://maven.bawnorton.com/releases") // MixinSquared
     maven("https://api.modrinth.com/maven") // Modrinth
-    maven("https://maven.isxander.dev/releases") // YACL
-    maven("https://maven.terraformersmc.com/") // ModMenu
 }
 
 dependencies {
@@ -103,17 +96,7 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${deps.fabricApiVersion}+${mc.version}") {
         exclude(group = "net.fabricmc.fabric-api", module = "fabric-content-registries-v0")
     }
-
-    modImplementation("com.terraformersmc:modmenu:${deps.modmenuVersion}")
-    modImplementation("dev.isxander:yet-another-config-lib:${deps.yaclVersion}-fabric")
-
-    val mixinconstraints = implementation("com.moulberry:mixinconstraints:${deps.mixinconstraintsVersion}") !!
-    val mixinsquared = implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${deps.mixinsquaredVersion}") !!) !!
-    add("include", mixinconstraints)
-    add("include", mixinsquared)
 }
-
-
 
 java {
     val javaVersion = if (obfuscated) JavaVersion.VERSION_21 else JavaVersion.VERSION_25
@@ -136,8 +119,6 @@ tasks.processResources {
         put("modrinth", mod.modrinth)
         put("discord", mod.discord)
         put("fabric_loader_version", deps.fabricLoaderVersion)
-        put("yacl_version", deps.yaclVersion)
-        put("modmenu_version", deps.modmenuVersion)
     }
 
     props.forEach(inputs::property)

@@ -1,32 +1,37 @@
 package com.github.noamm9.packdisabler.config
 
-import dev.isxander.yacl3.api.*
-import dev.isxander.yacl3.api.controller.BooleanControllerBuilder
-import dev.isxander.yacl3.config.v2.api.ConfigClassHandler
-import dev.isxander.yacl3.config.v2.api.SerialEntry
-import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder
-import dev.isxander.yacl3.platform.YACLPlatform
-import net.minecraft.client.gui.screens.Screen
-import net.minecraft.network.chat.Component
+import net.fabricmc.loader.api.FabricLoader
+import java.io.File
+import java.util.*
 
-class Config {
-    @SerialEntry var blockPackDownload = true
+object Config {
+    private val configDir = FabricLoader.getInstance().configDir.resolve("@MODID@").toFile()
+    private val configFile = configDir.resolve("@MODID@.properties")
+    private val config = Properties().apply {
+        configFile.takeIf(File::exists)?.reader()?.use(::load)
+    }
 
-    companion object {
-        val handler = ConfigClassHandler.createBuilder(Config::class.java).serializer {
-            GsonConfigSerializerBuilder.create(it).setPath(YACLPlatform.getConfigDir().resolve("@MODID@").resolve("config.json")).build()
-        }.build()
+    fun get(key: String): String? = config.getProperty(key)
+    fun set(key: String, value: String) = config.setProperty(key, value).also { save() }
 
-        fun createScreen(parent: Screen?) = YetAnotherConfigLib.create(handler) { defaults, config, builder ->
-            builder.title(Component.literal("Pack Disabler")).category(ConfigCategory.createBuilder().apply {
-                name(Component.literal("General"))
-                option(Option.createBuilder<Boolean>().apply {
-                    name(Component.literal("Block Pack Download"))
-                    description(OptionDescription.of(Component.literal("Blocks the resource pack download packet sent by Hypixel when joining Skyblock.")))
-                    binding(defaults.blockPackDownload, { config.blockPackDownload }, { config.blockPackDownload = it })
-                    controller(BooleanControllerBuilder::create)
-                }.build())
-            }.build())
-        }.generateScreen(parent)
+    val whitelist get() = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(" ") ?: emptyList())
+
+    private fun save() {
+        configFile.parentFile.mkdirs()
+        configFile.outputStream().use { config.store(it, "PackDisabler config") }
+    }
+
+    class PersistedList(initial: List<String>): ArrayList<String>(initial) {
+        private fun persist() = this@Config.set("whitelist", joinToString(" "))
+
+        override fun add(element: String) = super.add(element).also { persist() }
+        override fun add(index: Int, element: String) = super.add(index, element).also { persist() }
+
+        override fun addAll(elements: Collection<String>) = super.addAll(elements).also { persist() }
+        override fun remove(element: String) = super.remove(element).also { persist() }
+        override fun removeAt(index: Int) = super.removeAt(index).also { persist() }
+        override fun clear() = super.clear().also { persist() }
+
+        override fun set(index: Int, element: String) = super.set(index, element).also { persist() }
     }
 }

@@ -1,11 +1,8 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.ResourceOverrides
 import com.github.noamm9.packdisabler.config.Config
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl
 import net.minecraft.network.Connection
-import net.minecraft.network.DisconnectionDetails
-import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import org.spongepowered.asm.mixin.Final
@@ -16,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 @Mixin(ClientCommonPacketListenerImpl::class)
-class MixinClientCommonPacketListenerImpl {
+abstract class MixinClientCommonPacketListenerImpl {
     @Shadow @Final private lateinit var connection: Connection
 
     @Inject(
@@ -30,20 +27,9 @@ class MixinClientCommonPacketListenerImpl {
     )
     private fun onResourcePack(packet: ClientboundResourcePackPushPacket, ci: CallbackInfo) {
         if (! packet.url.contains("hypixel.net") || ! packet.url.contains("SkyBlock")) return
-        ResourceOverrides.addPack(packet.id)
-        if (! Config.handler.instance().blockPackDownload) return
+        Config.set("packUrl", packet.url)
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.ACCEPTED))
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED))
         ci.cancel()
-    }
-
-    @Inject(method = ["handleResourcePackPop"], at = [At(value = "TAIL")])
-    private fun onResourcePackPop(packet: ClientboundResourcePackPopPacket, ci: CallbackInfo?) {
-        ResourceOverrides.removePack(packet.id.orElse(null))
-    }
-
-    @Inject(method = ["onDisconnect"], at = [At("HEAD")])
-    private fun onDisconnect(details: DisconnectionDetails?, ci: CallbackInfo?) {
-        ResourceOverrides.clear()
     }
 }

@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.Mixin
 //?} else {
 /*@Mixin(GuiGraphics::class)
 *///?}
-class MixinGuiGraphicsExtractor {
+abstract class MixinGuiGraphicsExtractor {
     //? if >1.21.11 {
     @WrapMethod(method = ["tooltip"])
     //?} else {
