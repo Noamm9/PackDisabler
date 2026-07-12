@@ -1,4 +1,5 @@
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
+import org.gradle.kotlin.dsl.the
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -70,7 +71,7 @@ extensions.configure<LoomGradleExtensionAPI> {
 
             configureEach {
                 if (mixinJarFile != null) vmArg("-javaagent:$mixinJarFile")
-                vmArg("-XX:+AllowEnhancedClassRedefinition")
+                //vmArg("-XX:+AllowEnhancedClassRedefinition")
 
                 property("mixin.hotSwap", "true")
                 property("mixin.debug.export", "true")
@@ -112,8 +113,6 @@ dependencies {
     add("include", mixinconstraints)
     add("include", mixinsquared)
 }
-
-
 
 java {
     val javaVersion = if (obfuscated) JavaVersion.VERSION_21 else JavaVersion.VERSION_25

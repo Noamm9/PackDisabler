@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.injection.At
 
 @Mixin(ItemModelResolver::class)
-class MixinItemModelResolver {
+abstract class MixinItemModelResolver {
     @WrapOperation(
         method = ["appendItemLayers"],
         at = [At(
@@ -35,11 +35,10 @@ class MixinItemModelResolver {
         // quiver arrows have no skyblock id
         val oldModel = when {
             skyblockID != null -> PackDisabler.idToLocation[skyblockID]
-            customData.contains("quiver_arrow") -> Items.ARROW.components()[DataComponents.ITEM_MODEL]
+            // customData.contains("quiver_arrow") -> Items.ARROW.components()[DataComponents.ITEM_MODEL]
             else -> null
-        }
+        } ?: return currentModel
 
-        if (oldModel == null) return currentModel
         return skyblockID?.let { DynamicItemModels.resolve(it, instance, customData, oldModel) } ?: oldModel
     }
 }
