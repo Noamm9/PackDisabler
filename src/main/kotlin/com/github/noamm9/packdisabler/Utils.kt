@@ -15,7 +15,19 @@ object Utils {
 
     val skyblockId = fun(tag: CompoundTag) = normalizedId(tag, "id")
 
-    @JvmField val chat = fun(msg: String) = Minecraft.getInstance().gui.chat.addClientSystemMessage(prefix.copy().append(Component.literal(" $msg")))
+    @JvmField
+    val chat = fun(msg: String) {
+        val component = prefix.copy().append(Component.literal(" $msg"))
+        val mc = Minecraft.getInstance()
+
+        /*? if =26.1.2 { */
+        /*mc.gui.chat.addClientSystemMessage(component)
+        *//*? } else if =1.21.11 { */
+        /*mc.gui.chat.addMessage(component)
+        *//*? } else if =26.2 { */
+        mc.gui.hud.chat.addClientSystemMessage(component)
+        /*? } */
+    }
 
     private val normalizedId = fun(tag: CompoundTag, key: String) = tag.getString(key).getOrNull()?.replace(":", "-")
 
