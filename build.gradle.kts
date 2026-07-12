@@ -33,8 +33,6 @@ class Dependencies {
     val fabricLoaderVersion = property("deps.fabric_loader_version")
     val fabricKotlinVersion = property("deps.fabric_kotlin_version")
     val devauthVersion = property("deps.devauth_version")
-    val mixinconstraintsVersion = property("deps.mixinconstraints_version")
-    val mixinsquaredVersion = property("deps.mixinsquared_version")
 }
 
 class McData {
@@ -84,7 +82,6 @@ fletchingTable {
 
 repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1") // DevAuth
-    maven("https://maven.bawnorton.com/releases") // MixinSquared
     maven("https://api.modrinth.com/maven") // Modrinth
 }
 
@@ -95,11 +92,6 @@ dependencies {
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${deps.devauthVersion}")
     modImplementation("net.fabricmc:fabric-loader:${deps.fabricLoaderVersion}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${deps.fabricKotlinVersion}")
-
-    val mixinconstraints = implementation("com.moulberry:mixinconstraints:${deps.mixinconstraintsVersion}") !!
-    val mixinsquared = implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${deps.mixinsquaredVersion}") !!) !!
-    add("include", mixinconstraints)
-    add("include", mixinsquared)
 }
 
 java {
