@@ -12,10 +12,14 @@ object Config {
         configFile.takeIf(File::exists)?.reader()?.use(::load)
     }
 
-    fun get(key: String): String? = config.getProperty(key)
-    fun set(key: String, value: String) = config.setProperty(key, value).also { save() }
-
     val whitelist = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(" ") ?: emptyList())
+    var packUrl: String?
+        get() = get("packUrl")
+        set(value) = set("packUrl", value.orEmpty())
+
+
+    private fun get(key: String): String? = config.getProperty(key)
+    private fun set(key: String, value: String) = config.setProperty(key, value).let { save() }
 
     private fun save() {
         configFile.parentFile.mkdirs()

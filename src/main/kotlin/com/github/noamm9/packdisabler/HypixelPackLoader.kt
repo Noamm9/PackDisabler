@@ -47,7 +47,7 @@ object HypixelPackLoader {
     }
 
     private fun downloadPack(client: HttpClient): Boolean {
-        val url = Config.get("packUrl") ?: packUrl
+        val url = Config.packUrl ?: packUrl
         val storedEtag = etagFile.takeIf(Path::exists)?.readText()
 
         logger.info("Downloading hypixel pack...")
