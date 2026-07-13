@@ -51,17 +51,34 @@ object HypixelPackLoader {
         val storedEtag = etagFile.takeIf(Path::exists)?.readText()
 
         val head = HttpRequest.newBuilder(URI.create(url)).method("HEAD", HttpRequest.BodyPublishers.noBody()).build()
-        val headResp = httpClient.send(head, HttpResponse.BodyHandlers.discarding())
+        val headResp = runCatching { httpClient.send(head, HttpResponse.BodyHandlers.discarding()) }
+            .onFailure { logger.error("Failed to reach $url for HEAD request", it) }
+            .getOrNull() ?: return
+
+        if (headResp.statusCode() !in 200 .. 299) {
+            logger.error("HEAD request to $url returned status ${headResp.statusCode()}")
+            return
+        }
+
         val remoteEtag = headResp.headers().firstValue("etag").orElse(null)
 
         if (remoteEtag != null && remoteEtag == storedEtag && packFile.exists()) return
 
         val tmp = Files.createTempFile(packDir, "hypixel_pack", ".tmp")
         val get = HttpRequest.newBuilder(URI.create(url)).header("Accept-Encoding", "gzip").build()
-        httpClient.send(get, HttpResponse.BodyHandlers.ofFile(tmp))
+        val getResp = runCatching { httpClient.send(get, HttpResponse.BodyHandlers.ofFile(tmp)) }
+            .onFailure { logger.error("Failed to download pack from $url", it) }
+            .getOrNull() ?: return
+
+        if (getResp.statusCode() !in 200 .. 299) {
+            logger.error("GET request to $url returned status ${getResp.statusCode()}, discarding")
+            Files.deleteIfExists(tmp)
+            return
+        }
 
         Files.move(tmp, packFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
         remoteEtag?.let(etagFile::writeText)
+        logger.info("Hypixel pack downloaded successfully")
     }
 
     private fun buildPack(): Pack {
@@ -73,11 +90,14 @@ object HypixelPackLoader {
         )
 
         val resourcesSupplier = FilePackResources.FileResourcesSupplier(packFile.toFile())
-        val selectionConfig = PackSelectionConfig(false, Pack.Position.BOTTOM, false)
+        val selectionConfig = PackSelectionConfig(true, Pack.Position.BOTTOM, true)
 
         return Pack.readMetaAndCreate(locationInfo, resourcesSupplier, PackType.CLIENT_RESOURCES, selectionConfig) ?: error("Failed to read pack metadata for $packFile")
     }
 
+    /**
+     * @see com.github.noamm9.packdisabler.mixin.MixinMinecraft
+     */
     class HypixelPackRepositorySource: RepositorySource {
         override fun loadPacks(onLoad: Consumer<Pack>) {
             onLoad.accept(activePack)
