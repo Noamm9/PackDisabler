@@ -1,8 +1,12 @@
 package com.github.noamm9.packdisabler
 
+//? if =1.21.11 {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
+*///?} else {
+//?}
 import com.github.noamm9.packdisabler.Utils.chat
-import com.github.noamm9.packdisabler.Utils.skyblockId
-import com.github.noamm9.packdisabler.config.WhitelistManager
+import com.github.noamm9.packdisabler.config.WLM
 import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
@@ -19,13 +23,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-//? if =1.21.11 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
-*///?} else {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
-//?}
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
@@ -49,12 +48,12 @@ class PackDisabler: ClientModInitializer {
     override fun onInitializeClient() {
         HypixelPackLoader.init()
         //? if =1.21.11 {
-        /*KeyMappingHelper.registerKeyBinding(WhitelistManager.keybind)
+        /*KeyMappingHelper.registerKeyBinding(WLM.keybind)
         *///?} else {
-        KeyMappingHelper.registerKeyMapping(WhitelistManager.keybind)
+        KeyMappingHelper.registerKeyMapping(WLM.keybind)
         //?}
 
-        val commandUsage = listOf(
+        val commandUsage = mapOf(
             "/@MODID@ whitelist" to "Toggle the pack override for the item in your hand.",
             "/@MODID@ whitelist <skyblockId>" to "Toggle the pack override for a specific Skyblock item ID.",
             "/@MODID@ help" to "Show this list.",
@@ -73,11 +72,11 @@ class PackDisabler: ClientModInitializer {
 
                 then(ClientCommands.literal("whitelist").apply {
                     executes {
-                        val sbid = Minecraft.getInstance().player?.mainHandItem?.skyblockId ?: run {
+                        val sbid = WLM.id(Minecraft.getInstance().player?.mainHandItem) ?: run {
                             chat("§cHeld item has no Skyblock ID!§r")
                             return@executes Command.SINGLE_SUCCESS
                         }
-                        WhitelistManager.toggle(sbid)
+                        WLM.toggle(sbid)
                         Command.SINGLE_SUCCESS
                     }
 
@@ -89,7 +88,7 @@ class PackDisabler: ClientModInitializer {
 
                         executes { context ->
                             val sbid = StringArgumentType.getString(context, "SkyBlock ID")
-                            WhitelistManager.toggle(sbid)
+                            WLM.toggle(sbid)
                             Command.SINGLE_SUCCESS
                         }
                     })

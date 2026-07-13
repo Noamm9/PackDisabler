@@ -1,7 +1,8 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.Utils.skyblockId
-import com.github.noamm9.packdisabler.config.WhitelistManager
+import com.github.noamm9.packdisabler.PackDisabler
+import com.github.noamm9.packdisabler.Utils.customData
+import com.github.noamm9.packdisabler.config.WLM
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.world.inventory.Slot
@@ -17,9 +18,9 @@ abstract class MixinAbstractContainerScreen {
 
     @Inject(method = ["keyPressed"], at = [At("HEAD")])
     private fun onKeyPressed(event: KeyEvent, cir: CallbackInfoReturnable<Boolean>) {
-        if (! WhitelistManager.keybind.matches(event)) return
-        val slot = hoveredSlot?.takeIf(Slot::hasItem) ?: return
-        val sbid = slot.item.skyblockId ?: return
-        WhitelistManager.toggle(sbid)
+        if (! WLM.keybind.matches(event)) return
+        val stack = hoveredSlot?.takeIf(Slot::hasItem)?.item ?: return
+        PackDisabler.logger.info(stack.customData.toString())
+        WLM.id(stack)?.let(WLM::toggle)
     }
 }
