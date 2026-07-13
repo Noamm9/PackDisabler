@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 @Mixin(AbstractContainerScreen::class)
 abstract class MixinAbstractContainerScreen {
-    @Shadow protected var hoveredSlot: Slot? = null
+    @Shadow @JvmField protected var hoveredSlot: Slot? = null
 
     @Inject(method = ["keyPressed"], at = [At("HEAD")])
     private fun onKeyPressed(event: KeyEvent, cir: CallbackInfoReturnable<Boolean>) {
