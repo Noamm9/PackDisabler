@@ -15,7 +15,7 @@ object Config {
     fun get(key: String): String? = config.getProperty(key)
     fun set(key: String, value: String) = config.setProperty(key, value).also { save() }
 
-    val whitelist get() = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(" ") ?: emptyList())
+    val whitelist = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(" ") ?: emptyList())
 
     private fun save() {
         configFile.parentFile.mkdirs()
