@@ -1,5 +1,6 @@
 package com.github.noamm9.packdisabler
 
+import com.github.noamm9.packdisabler.PackDisabler.Companion.httpClient
 import com.github.noamm9.packdisabler.PackDisabler.Companion.logger
 import com.github.noamm9.packdisabler.config.Config
 import net.fabricmc.loader.api.FabricLoader
@@ -13,7 +14,6 @@ import net.minecraft.server.packs.repository.Pack
 import net.minecraft.server.packs.repository.PackSource
 import net.minecraft.server.packs.repository.RepositorySource
 import java.net.URI
-import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.file.Files
@@ -30,7 +30,6 @@ object HypixelPackLoader {
     private val packDir = FabricLoader.getInstance().configDir.resolve("@MODID@")
     private val packFile = packDir.resolve("hypixel_skyblock.zip")
     private val etagFile = packDir.resolve("hypixel_skyblock.zip.etag")
-    private val httpClient = HttpClient.newHttpClient()
 
     private lateinit var activePack: Pack
 
@@ -58,7 +57,7 @@ object HypixelPackLoader {
         if (remoteEtag != null && remoteEtag == storedEtag && packFile.exists()) return
 
         val tmp = Files.createTempFile(packDir, "hypixel_pack", ".tmp")
-        val get = HttpRequest.newBuilder(URI.create(url)).build()
+        val get = HttpRequest.newBuilder(URI.create(url)).header("Accept-Encoding", "gzip").build()
         httpClient.send(get, HttpResponse.BodyHandlers.ofFile(tmp))
 
         Files.move(tmp, packFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)

@@ -24,7 +24,7 @@ object DynamicItemModels {
     private val katanas = setOf("VOIDEDGE_KATANA", "VORPAL_KATANA", "ATOMSPLIT_KATANA")
     private val fungiCutters = setOf("FUNGI_CUTTER", "FUNGI_CUTTER_2", "FUNGI_CUTTER_3")
 
-    fun resolve(skyblockId: String, stack: ItemStack, customData: CompoundTag, fallback: Identifier): Identifier = when (skyblockId) {
+    fun resolve(skyblockId: String, stack: ItemStack, customData: CompoundTag, fallback: Identifier) = when (skyblockId) {
         in attunedModels -> attunedModels.getValue(skyblockId).let { (mode, model) ->
             if (customData.getInt("td_attune_mode").orElse(- 1) == mode) model else fallback
         }

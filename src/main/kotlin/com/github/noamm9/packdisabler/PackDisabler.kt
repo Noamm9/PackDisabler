@@ -13,6 +13,7 @@ import dev.kikugie.fletching_table.annotation.fabric.Entrypoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -30,8 +31,11 @@ import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
 import org.slf4j.LoggerFactory
 import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.util.*
-import javax.net.ssl.HttpsURLConnection
+import java.util.zip.*
 
 @Entrypoint(Entrypoint.CLIENT)
 class PackDisabler: ClientModInitializer {
@@ -39,6 +43,7 @@ class PackDisabler: ClientModInitializer {
         val logger = LoggerFactory.getLogger(PackDisabler::class.java)
         var idToLocation = HashMap<String, Identifier>()
         val idToSkullProfile = HashMap<String, ResolvableProfile>()
+        val httpClient = HttpClient.newHttpClient()
     }
 
     override fun onInitializeClient() {
@@ -68,9 +73,7 @@ class PackDisabler: ClientModInitializer {
 
                 then(ClientCommands.literal("whitelist").apply {
                     executes {
-                        val player = Minecraft.getInstance().player ?: return@executes 0
-                        val sbid = player.mainHandItem.skyblockId
-                        if (sbid == null) {
+                        val sbid = Minecraft.getInstance().player?.mainHandItem?.skyblockId ?: run {
                             chat("§cHeld item has no Skyblock ID!§r")
                             return@executes Command.SINGLE_SUCCESS
                         }
@@ -97,11 +100,16 @@ class PackDisabler: ClientModInitializer {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 logger.info("Fetching Skyblock items from API")
-                val url = URI.create("https://api.noamm.org/resources/skyblock-items").toURL()
-                val connection = url.openConnection() as HttpsURLConnection
-                connection.setRequestProperty("User-Agent", this::class.simpleName + " @VERSION@")
-                connection.requestMethod = "GET"
-                val raw = connection.inputStream.bufferedReader().readText()
+
+                val request = HttpRequest.newBuilder(URI.create("https://api.noamm.org/resources/skyblock-items")).apply {
+                    header("User-Agent", "PackDisabler @VERSION@")
+                    header("Accept-Encoding", "gzip")
+                    header("Accept", "application/json")
+                }.build()
+
+                val response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray())
+                if (response.statusCode() != 200) throw IOException("Failed to fetch skyblock items from API: ${response.statusCode()}")
+                val raw = GZIPInputStream(response.body().inputStream()).use { it.readBytes().toString(Charsets.UTF_8) }
 
                 for ((sbid, element) in Json.parseToJsonElement(raw).jsonObject) {
                     val item = element.jsonObject
