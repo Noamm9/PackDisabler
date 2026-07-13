@@ -88,7 +88,7 @@ class PackDisabler: ClientModInitializer {
                         }
 
                         executes { context ->
-                            val sbid = StringArgumentType.getString(context, "sbid")
+                            val sbid = StringArgumentType.getString(context, "SkyBlock ID")
                             WhitelistManager.toggle(sbid)
                             Command.SINGLE_SUCCESS
                         }
