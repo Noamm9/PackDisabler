@@ -9,10 +9,6 @@ import com.mojang.authlib.properties.PropertyMap
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.arguments.StringArgumentType
 import dev.kikugie.fletching_table.annotation.fabric.Entrypoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -29,12 +25,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
 import org.slf4j.LoggerFactory
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.util.*
-import java.util.zip.*
 
 @Entrypoint(Entrypoint.CLIENT)
 class PackDisabler: ClientModInitializer {
@@ -42,11 +33,9 @@ class PackDisabler: ClientModInitializer {
         val logger = LoggerFactory.getLogger(PackDisabler::class.java)
         var idToLocation = HashMap<String, Identifier>()
         val idToSkullProfile = HashMap<String, ResolvableProfile>()
-        val httpClient = HttpClient.newHttpClient()
     }
 
     override fun onInitializeClient() {
-        HypixelPackLoader.init()
         //? if =1.21.11 {
         /*KeyMappingHelper.registerKeyBinding(WLM.keybind)
         *///?} else {
@@ -96,35 +85,18 @@ class PackDisabler: ClientModInitializer {
             })
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                logger.info("Fetching Skyblock items from API")
+        val raw = this::class.java.getResourceAsStream("/skyblock-items.json")?.reader()?.readText() ?: error("missing skyblock-items.json")
 
-                val request = HttpRequest.newBuilder(URI.create("https://api.noamm.org/resources/skyblock-items")).apply {
-                    header("User-Agent", "PackDisabler @VERSION@")
-                    header("Accept-Encoding", "gzip")
-                    header("Accept", "application/json")
-                }.build()
+        for ((sbid, element) in Json.parseToJsonElement(raw).jsonObject) {
+            val item = element.jsonObject
+            val model = item["model"]?.jsonPrimitive?.content ?: continue
+            val texture = item["texture"]?.jsonPrimitive?.content
 
-                val response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray())
-                if (response.statusCode() != 200) throw IOException("Failed to fetch skyblock items from API: ${response.statusCode()}")
-                val raw = GZIPInputStream(response.body().inputStream()).use { it.readBytes().toString(Charsets.UTF_8) }
-
-                for ((sbid, element) in Json.parseToJsonElement(raw).jsonObject) {
-                    val item = element.jsonObject
-                    val model = item["model"]?.jsonPrimitive?.content ?: continue
-                    val texture = item["texture"]?.jsonPrimitive?.content
-
-                    idToLocation[sbid] = Identifier.parse(model)
-                    if (! texture.isNullOrEmpty()) idToSkullProfile[sbid] = createProfile(sbid, texture)
-                }
-
-                logger.info("Finished loading ${idToLocation.size} items")
-            }
-            catch (e: Exception) {
-                logger.error("Failed to load Skyblock items", e)
-            }
+            idToLocation[sbid] = Identifier.parse(model)
+            if (! texture.isNullOrEmpty()) idToSkullProfile[sbid] = createProfile(sbid, texture)
         }
+
+        logger.info("Finished loading ${idToLocation.size} items")
     }
 
     private fun createProfile(sbid: String, texture: String): ResolvableProfile {
