@@ -14,7 +14,7 @@ object Config {
 
     val whitelist = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(" ") ?: emptyList())
     var packUrl: String?
-        get() = get("packUrl")
+        get() = get("packUrl")?.ifEmpty { null }
         set(value) = set("packUrl", value.orEmpty())
 
 

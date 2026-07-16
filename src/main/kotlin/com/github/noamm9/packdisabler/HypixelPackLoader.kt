@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption
 import java.time.Duration
 import java.util.*
 import java.util.function.*
+import kotlin.io.path.exists
 
 object HypixelPackLoader {
     private const val packUrl = "https://resourcepacks.hypixel.net/SkyBlock/5c59e0a9-9865-4d4e-91d2-915515672cbd/84.zip"
@@ -32,13 +33,13 @@ object HypixelPackLoader {
         val client = HttpClient.newHttpClient()
         Files.createDirectories(packDir)
 
-        if (! downloadPack(client)) loadFallbackPack()
+        if (! downloadPack(client) && ! packFile.exists()) loadFallbackPack()
         buildPack().also { client.close() }
     }
 
     private fun loadFallbackPack() {
-        logger.info("Download failed and no cached pack found, extracting bundled fallback pack")
-        javaClass.getResourceAsStream(fallbackPath + "a")?.use { input ->
+        logger.info("Download failed, extracting bundled fallback pack")
+        javaClass.getResourceAsStream(fallbackPath)?.use { input ->
             Files.copy(input, packFile, StandardCopyOption.REPLACE_EXISTING)
         } ?: error("Bundled fallback pack not found in jar at $fallbackPath")
     }
@@ -54,7 +55,10 @@ object HypixelPackLoader {
 
         val tmp = Files.createTempFile(packDir, "pack", ".tmp")
         val response = runCatching { client.send(request, HttpResponse.BodyHandlers.ofFile(tmp)) }
-            .onFailure { logger.error("Failed to download pack from ${request.uri()}", it) }
+            .onFailure {
+                logger.error("Failed to download pack from ${request.uri()}", it)
+                Files.deleteIfExists(tmp)
+            }
             .getOrNull() ?: return false
 
         if (response.statusCode() !in 200 .. 299) {
@@ -76,10 +80,20 @@ object HypixelPackLoader {
             Optional.empty()
         )
 
-        val resourcesSupplier = FilePackResources.FileResourcesSupplier(packFile.toFile())
-        val selectionConfig = PackSelectionConfig(true, Pack.Position.BOTTOM, true)
+        val selectionConfig = PackSelectionConfig(
+            true, // required
+            Pack.Position.BOTTOM,
+            true // fixedPosition
+        )
 
-        return Pack.readMetaAndCreate(locationInfo, resourcesSupplier, PackType.CLIENT_RESOURCES, selectionConfig) ?: error("Failed to read pack metadata for $packFile")
+        val resourcesSupplier = FilePackResources.FileResourcesSupplier(packFile.toFile())
+
+        return Pack.readMetaAndCreate(
+            locationInfo,
+            resourcesSupplier,
+            PackType.CLIENT_RESOURCES,
+            selectionConfig
+        ) ?: error("Failed to read pack metadata for $packFile")
     }
 
     /**
