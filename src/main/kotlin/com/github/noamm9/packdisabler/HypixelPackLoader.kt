@@ -15,7 +15,9 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.file.AccessDeniedException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.time.Duration
 import java.util.*
@@ -33,8 +35,9 @@ object HypixelPackLoader {
         val client = HttpClient.newHttpClient()
         Files.createDirectories(packDir)
 
-        if (! downloadPack(client) && ! packFile.exists()) loadFallbackPack()
-        buildPack().also { client.close() }
+        val activePack = downloadPack(client) ?: packFile
+        if (! activePack.exists()) loadFallbackPack()
+        buildPack(activePack).also { client.close() }
     }
 
     private fun loadFallbackPack() {
@@ -44,7 +47,7 @@ object HypixelPackLoader {
         } ?: error("Bundled fallback pack not found in jar at $fallbackPath")
     }
 
-    private fun downloadPack(client: HttpClient): Boolean {
+    private fun downloadPack(client: HttpClient): Path? {
         logger.info("Downloading hypixel pack...")
 
         val request = HttpRequest.newBuilder().apply {
@@ -59,20 +62,27 @@ object HypixelPackLoader {
                 logger.error("Failed to download pack from ${request.uri()}", it)
                 Files.deleteIfExists(tmp)
             }
-            .getOrNull() ?: return false
+            .getOrNull() ?: return null
 
         if (response.statusCode() !in 200 .. 299) {
             logger.error("GET request to ${request.uri()} returned status ${response.statusCode()}, discarding")
             Files.deleteIfExists(tmp)
-            return false
+            return null
         }
 
-        Files.move(tmp, packFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-        logger.info("Hypixel pack downloaded successfully")
-        return true
+        return try {
+            Files.move(tmp, packFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            logger.info("Hypixel pack downloaded successfully")
+            packFile
+        } catch (error: AccessDeniedException) {
+            if (! Files.isRegularFile(packFile)) throw error
+            logger.warn("Cannot replace cached pack at $packFile; using fresh download for this session", error)
+            tmp.toFile().deleteOnExit()
+            tmp
+        }
     }
 
-    private fun buildPack(): Pack {
+    private fun buildPack(packPath: Path): Pack {
         val locationInfo = PackLocationInfo(
             "hypixel_skyblock",
             Component.literal("PackDisabler: SkyblockPack"),
@@ -86,14 +96,14 @@ object HypixelPackLoader {
             true // fixedPosition
         )
 
-        val resourcesSupplier = FilePackResources.FileResourcesSupplier(packFile.toFile())
+        val resourcesSupplier = FilePackResources.FileResourcesSupplier(packPath.toFile())
 
         return Pack.readMetaAndCreate(
             locationInfo,
             resourcesSupplier,
             PackType.CLIENT_RESOURCES,
             selectionConfig
-        ) ?: error("Failed to read pack metadata for $packFile")
+        ) ?: error("Failed to read pack metadata for $packPath")
     }
 
     /**
