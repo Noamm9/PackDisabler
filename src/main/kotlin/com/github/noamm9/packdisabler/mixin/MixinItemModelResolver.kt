@@ -19,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.At
 
 @Mixin(ItemModelResolver::class)
 abstract class MixinItemModelResolver {
+    private val `packdisabler$arrow` by lazy(LazyThreadSafetyMode.NONE) { Items.ARROW.components()[DataComponents.ITEM_MODEL] }
+
     @WrapOperation(
         method = ["appendItemLayers"],
         at = [At(
@@ -37,11 +39,10 @@ abstract class MixinItemModelResolver {
 
         val oldModel = when {
             skyblockID != null -> PackDisabler.idToLocation[skyblockID]
-            customData.contains("quiver_arrow") -> Items.ARROW.components()[DataComponents.ITEM_MODEL]
+            customData.contains("quiver_arrow") -> `packdisabler$arrow`
             else -> null
         } ?: return currentModel
 
         return skyblockID?.let { DynamicItemModels.resolve(it, instance, customData, oldModel) } ?: oldModel
-
     }
 }

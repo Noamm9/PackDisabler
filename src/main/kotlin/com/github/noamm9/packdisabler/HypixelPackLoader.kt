@@ -71,10 +71,11 @@ object HypixelPackLoader {
         }
 
         return try {
-            Files.move(tmp, packFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            Files.move(tmp, packFile, StandardCopyOption.REPLACE_EXISTING)
             logger.info("Hypixel pack downloaded successfully")
             packFile
-        } catch (error: AccessDeniedException) {
+        }
+        catch (error: AccessDeniedException) {
             if (! Files.isRegularFile(packFile)) throw error
             logger.warn("Cannot replace cached pack at $packFile; using fresh download for this session", error)
             tmp.toFile().deleteOnExit()

@@ -1,7 +1,5 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.PackDisabler
-import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.config.WLM
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.KeyEvent
@@ -20,7 +18,7 @@ abstract class MixinAbstractContainerScreen {
     private fun onKeyPressed(event: KeyEvent, cir: CallbackInfoReturnable<Boolean>) {
         if (! WLM.keybind.matches(event)) return
         val stack = hoveredSlot?.takeIf(Slot::hasItem)?.item ?: return
-        PackDisabler.logger.info(stack.customData.toString())
         WLM.id(stack)?.let(WLM::toggle)
+        cir.returnValue = true
     }
 }

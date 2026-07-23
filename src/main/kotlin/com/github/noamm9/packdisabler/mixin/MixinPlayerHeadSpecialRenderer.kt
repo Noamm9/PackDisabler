@@ -3,7 +3,6 @@ package com.github.noamm9.packdisabler.mixin
 import com.github.noamm9.packdisabler.PackDisabler
 import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.Utils.skyblockSkinId
-import com.github.noamm9.packdisabler.config.Config
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
 import net.minecraft.client.renderer.special.PlayerHeadSpecialRenderer
@@ -28,7 +27,6 @@ abstract class MixinPlayerHeadSpecialRenderer {
         if (instance.isEmpty) return currentProfile
         if (instance.`is`(Items.PLAYER_HEAD)) return currentProfile
         val sbid = instance.skyblockId ?: return currentProfile
-        if (sbid in Config.whitelist) return currentProfile
 
         return instance.skyblockSkinId?.let(PackDisabler.idToSkullProfile::get)
             ?: PackDisabler.idToSkullProfile[sbid]

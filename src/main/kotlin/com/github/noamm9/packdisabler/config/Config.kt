@@ -9,7 +9,7 @@ object Config {
     private val configDir = FabricLoader.getInstance().configDir.resolve("@MODID@").toFile()
     private val configFile = configDir.resolve("@MODID@.properties")
     private val config = Properties().apply {
-        configFile.takeIf(File::exists)?.reader()?.use(::load)
+        configFile.takeIf(File::exists)?.reader()?.use(::load) ?: configFile.createNewFile()
     }
 
     val whitelist = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(" ") ?: emptyList())
