@@ -28,8 +28,8 @@ abstract class MixinItemModelResolver {
             target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;"
         )]
     )
-    private fun appendItemLayerHook(instance: ItemStack, dataComponentType: DataComponentType<*>, original: Operation<Identifier>): Any {
-        val currentModel = original.call(instance, dataComponentType)
+    private fun appendItemLayerHook(instance: ItemStack, dataComponentType: DataComponentType<*>, original: Operation<Identifier?>): Any? {
+        val currentModel = original.call(instance, dataComponentType) ?: return null
         if (instance.isEmpty) return currentModel
         if (currentModel.namespace != "hypixel_skyblock") return currentModel
         if (WLM.id(instance) in Config.whitelist) return currentModel
