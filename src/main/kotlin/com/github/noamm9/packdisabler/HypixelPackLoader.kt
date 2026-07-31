@@ -3,6 +3,7 @@ package com.github.noamm9.packdisabler
 import com.github.noamm9.packdisabler.PackDisabler.Companion.logger
 import com.github.noamm9.packdisabler.config.Config
 import net.fabricmc.loader.api.FabricLoader
+import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.server.packs.FilePackResources
 import net.minecraft.server.packs.PackLocationInfo
@@ -21,6 +22,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.function.*
 import kotlin.io.path.exists
 
@@ -30,15 +32,49 @@ object HypixelPackLoader {
 
     private val packDir = FabricLoader.getInstance().configDir.resolve("@MODID@")
     private val packFile = packDir.resolve("pack.zip")
+    private val httpClient by lazy(HttpClient::newHttpClient)
+    private var reloadQueue: CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
-    private val pack by lazy {
-        val client = HttpClient.newHttpClient()
-        Files.createDirectories(packDir)
+    @Volatile
+    private var activePack = lazy(::loadInitialPack)
 
-        val activePack = downloadPack(client) ?: packFile
-        if (! activePack.exists()) loadFallbackPack()
-        buildPack(activePack).also { client.close() }
+    private fun loadInitialPack() = preparePack(currentPackUrl(), allowCachedFallback = true)
+        ?: error("Failed to prepare initial Hypixel pack")
+
+    fun reload(onComplete: (Boolean) -> Unit = {}) {
+        val url = currentPackUrl()
+        reloadQueue = reloadQueue.handle<Void> { _, _ -> null }.thenCompose { reload(url) }
+        reloadQueue.whenCompleteAsync({ _, error ->
+            if (error != null) logger.error("Failed to reload the Hypixel pack", error)
+            onComplete(error == null)
+        }, Minecraft.getInstance())
     }
+
+    fun updatePackUrl(url: String) {
+        if (currentPackUrl() == url) return
+        Config.packUrl = url
+        reload()
+    }
+
+    private fun reload(url: String): CompletableFuture<Void> {
+        val minecraft = Minecraft.getInstance()
+        return CompletableFuture.supplyAsync {
+            preparePack(url) ?: error("No valid Hypixel pack was downloaded")
+        }.thenComposeAsync({ pack ->
+            activePack = lazyOf(pack)
+            minecraft.reloadResourcePacks()
+        }, minecraft)
+    }
+
+    private fun preparePack(url: String, allowCachedFallback: Boolean = false): Pack? {
+        Files.createDirectories(packDir)
+        val downloadedPath = downloadPack(url)
+        val path = downloadedPath ?: if (allowCachedFallback) packFile else return null
+        if (! path.exists()) loadFallbackPack()
+        return buildPack(path)
+    }
+
+    private fun currentPackUrl() = Config.packUrl ?: packUrl
 
     private fun loadFallbackPack() {
         logger.info("Download failed, extracting bundled fallback pack")
@@ -47,17 +83,17 @@ object HypixelPackLoader {
         } ?: error("Bundled fallback pack not found in jar at $fallbackPath")
     }
 
-    private fun downloadPack(client: HttpClient): Path? {
+    private fun downloadPack(url: String): Path? {
         logger.info("Downloading hypixel pack...")
 
         val request = HttpRequest.newBuilder().apply {
-            uri(URI.create(Config.packUrl ?: packUrl))
+            uri(URI.create(url))
             header("Accept-Encoding", "gzip")
             timeout(Duration.ofSeconds(10))
         }.build()
 
         val tmp = Files.createTempFile(packDir, "pack", ".tmp")
-        val response = runCatching { client.send(request, HttpResponse.BodyHandlers.ofFile(tmp)) }
+        val response = runCatching { httpClient.send(request, HttpResponse.BodyHandlers.ofFile(tmp)) }
             .onFailure {
                 logger.error("Failed to download pack from ${request.uri()}", it)
                 Files.deleteIfExists(tmp)
@@ -111,6 +147,6 @@ object HypixelPackLoader {
      * @see com.github.noamm9.packdisabler.mixin.MixinMinecraft
      */
     class HypixelPackRepositorySource: RepositorySource {
-        override fun loadPacks(onLoad: Consumer<Pack>) = onLoad.accept(pack)
+        override fun loadPacks(onLoad: Consumer<Pack>) = onLoad.accept(activePack.value)
     }
 }

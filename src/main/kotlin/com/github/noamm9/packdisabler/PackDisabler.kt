@@ -45,6 +45,7 @@ class PackDisabler: ClientModInitializer {
         val commandUsage = mapOf(
             "/@MODID@ whitelist" to "Toggle the pack override for the item in your hand.",
             "/@MODID@ whitelist <skyblockId>" to "Toggle the pack override for a specific Skyblock item ID.",
+            "/@MODID@ reload" to "Download and reload the Hypixel texture pack.",
             "/@MODID@ help" to "Show this list.",
         )
 
@@ -58,6 +59,14 @@ class PackDisabler: ClientModInitializer {
                 executes { printHelp() }
 
                 then(ClientCommands.literal("help").executes { printHelp() })
+
+                then(ClientCommands.literal("reload").executes {
+                    chat("§7Reloading the Hypixel texture pack...§r")
+                    HypixelPackLoader.reload { success ->
+                        chat(if (success) "§aHypixel texture pack reloaded.§r" else "§cFailed to reload the Hypixel texture pack. Check the log for details.§r")
+                    }
+                    Command.SINGLE_SUCCESS
+                })
 
                 then(ClientCommands.literal("whitelist").apply {
                     executes {
