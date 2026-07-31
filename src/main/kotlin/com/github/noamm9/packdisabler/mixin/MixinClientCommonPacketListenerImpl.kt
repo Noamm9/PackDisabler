@@ -1,6 +1,6 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.config.Config
+import com.github.noamm9.packdisabler.HypixelPackLoader
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
@@ -27,7 +27,7 @@ abstract class MixinClientCommonPacketListenerImpl {
     )
     private fun onResourcePack(packet: ClientboundResourcePackPushPacket, ci: CallbackInfo) {
         if (! packet.url.contains("hypixel.net") || ! packet.url.contains("SkyBlock")) return
-        if (Config.packUrl != packet.url) Config.packUrl = packet.url
+        HypixelPackLoader.updatePackUrl(packet.url)
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.ACCEPTED))
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED))
         ci.cancel()
