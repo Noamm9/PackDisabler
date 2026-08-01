@@ -1,10 +1,5 @@
 package com.github.noamm9.packdisabler
 
-//? if =1.21.11 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
-*///?} else {
-//?}
 import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.config.WLM
 import com.google.common.collect.ImmutableMultimap
@@ -19,8 +14,13 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+//? if =1.21.11 {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
+*///?} else {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
+//?}
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
