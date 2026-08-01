@@ -57,7 +57,7 @@ object HypixelPackLoader {
             val pack = preparePack(targetFile) ?: error("No valid Hypixel pack was downloaded")
             activePack = lazyOf(pack)
             activePackFile = targetFile
-            Minecraft.getInstance().reloadResourcePacks()
+            Minecraft.getInstance().submit(Minecraft.getInstance()::reloadResourcePacks)
         }
 
         reloadJob?.invokeOnCompletion { error ->
@@ -153,7 +153,7 @@ object HypixelPackLoader {
         ) ?: error("Failed to read pack metadata for $packPath")
     }
 
-    private fun getPackFile() = listOf(packFileA, packFileB).maxByOrNull(Files::getLastModifiedTime)
+    private fun getPackFile() = listOf(packFileA, packFileB).filter(Files::exists).maxByOrNull(Files::getLastModifiedTime)
 
     class HypixelPackRepositorySource: RepositorySource {
         override fun loadPacks(onLoad: Consumer<Pack>) = onLoad.accept(activePack.value)
