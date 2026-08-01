@@ -1,5 +1,10 @@
 package com.github.noamm9.packdisabler
 
+//? if =1.21.11 {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
+*///?} else {
+//?}
 import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.config.WLM
 import com.google.common.collect.ImmutableMultimap
@@ -14,13 +19,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-//? if =1.21.11 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
-*///?} else {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
-//?}
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.component.ResolvableProfile
@@ -33,6 +33,7 @@ class PackDisabler: ClientModInitializer {
         val logger = LoggerFactory.getLogger(PackDisabler::class.java)
         var idToLocation = HashMap<String, Identifier>()
         val idToSkullProfile = HashMap<String, ResolvableProfile>()
+        var debug = false
     }
 
     override fun onInitializeClient() {
@@ -43,10 +44,9 @@ class PackDisabler: ClientModInitializer {
         //?}
 
         val commandUsage = mapOf(
-            "/@MODID@ whitelist" to "Toggle the pack override for the item in your hand.",
-            "/@MODID@ whitelist <skyblockId>" to "Toggle the pack override for a specific Skyblock item ID.",
             "/@MODID@ reload" to "Download and reload the Hypixel texture pack.",
-            "/@MODID@ help" to "Show this list.",
+            "/@MODID@ whitelist" to "Toggle the pack override for an item.",
+            "/@MODID@ debug" to "prints item data to chat when adding an item to the whitelist.",
         )
 
         fun printHelp(): Int {
@@ -59,6 +59,11 @@ class PackDisabler: ClientModInitializer {
                 executes { printHelp() }
 
                 then(ClientCommands.literal("help").executes { printHelp() })
+                then(ClientCommands.literal("debug").executes {
+                    debug = debug.not()
+                    chat("Debug mode: $debug")
+                    Command.SINGLE_SUCCESS
+                })
 
                 then(ClientCommands.literal("reload").executes {
                     chat("§7Reloading the Hypixel texture pack...§r")

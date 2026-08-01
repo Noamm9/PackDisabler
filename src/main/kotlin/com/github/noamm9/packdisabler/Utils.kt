@@ -1,14 +1,21 @@
 package com.github.noamm9.packdisabler
 
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
+import com.mojang.serialization.JsonOps
 import net.minecraft.client.Minecraft
+import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.core.component.DataComponents
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.RegistryOps
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
 import kotlin.jvm.optionals.getOrNull
 
 object Utils {
+    private val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+
     val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
     val ItemStack.skyblockId get() = skyblockId(customData)
     val ItemStack.skyblockSkinId get() = normalizedId(customData, "skin")
@@ -27,6 +34,14 @@ object Utils {
         *//*? } else if =26.2 { */
         mc.gui.hud.chat.addClientSystemMessage(component)
         /*? } */
+    }
+
+    //@formatter:off
+    val ItemStack.rawNBT: String get() {
+        if (isEmpty) return "{}"
+        val ops = RegistryOps.create<JsonElement>(JsonOps.INSTANCE, Minecraft.getInstance().connection?.registryAccess() !!)
+        val jsonElement = DataComponentPatch.CODEC.encodeStart(ops, componentsPatch).result().get()
+        return gson.toJson(jsonElement)
     }
 
     private val prefix = Component.empty().apply {
