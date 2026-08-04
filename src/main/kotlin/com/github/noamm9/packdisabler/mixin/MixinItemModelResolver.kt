@@ -32,7 +32,13 @@ abstract class MixinItemModelResolver {
         val currentModel = original.call(instance, dataComponentType) ?: return null
         if (instance.isEmpty) return currentModel
         if (currentModel.namespace != "hypixel_skyblock") return currentModel
-        if (WLM.id(instance) in Config.whitelist) return currentModel
+
+        val itemId = WLM.id(instance)
+        val replacementModel = itemId
+            ?.let(Config::replacement)
+            ?.let(PackDisabler.vanillaItemModels::get)
+        if (replacementModel != null) return replacementModel
+        if (itemId in Config.whitelist) return currentModel
 
         val customData = instance.customData
         val skyblockID = skyblockId(customData)

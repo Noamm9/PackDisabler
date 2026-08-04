@@ -17,6 +17,13 @@ object Config {
         get() = get("packUrl")?.ifEmpty { null }
         set(value) = set("packUrl", value.orEmpty())
 
+    fun replacement(id: String): String? = get("replacement.$id")
+
+    fun setReplacement(target: String, replacement: String?) {
+        val key = "replacement.$target"
+        if (replacement == null) config.remove(key) else config.setProperty(key, replacement)
+        save()
+    }
 
     private fun get(key: String): String? = config.getProperty(key)
     private fun set(key: String, value: String) = config.setProperty(key, value).let { save() }
