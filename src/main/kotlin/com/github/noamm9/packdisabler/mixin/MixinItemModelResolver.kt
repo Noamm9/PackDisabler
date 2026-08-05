@@ -5,7 +5,7 @@ import com.github.noamm9.packdisabler.PackDisabler
 import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.config.Config
-import com.github.noamm9.packdisabler.config.WLM
+import com.github.noamm9.packdisabler.config.managers.WLM
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
 import net.minecraft.client.renderer.item.ItemModelResolver
@@ -30,9 +30,10 @@ abstract class MixinItemModelResolver {
     )
     private fun appendItemLayerHook(instance: ItemStack, dataComponentType: DataComponentType<*>, original: Operation<Identifier?>): Any? {
         val currentModel = original.call(instance, dataComponentType) ?: return null
-        if (instance.isEmpty) return currentModel
-        if (currentModel.namespace != "hypixel_skyblock") return currentModel
-        if (WLM.id(instance) in Config.whitelist) return currentModel
+        val id = WLM.id(instance)
+
+        id?.let(Config.replacements::get)?.let(PackDisabler.vanillaItemModels::get)?.let { return it }
+        if (id in Config.whitelist) return currentModel
 
         val customData = instance.customData
         val skyblockID = skyblockId(customData)
