@@ -40,9 +40,8 @@ class PackDisabler: ClientModInitializer {
             buildMap {
                 BuiltInRegistries.ITEM.forEach { item ->
                     val id = BuiltInRegistries.ITEM.getKey(item).toString()
-                    if (id.startsWith("minecraft:")) {
-                        item.components()[DataComponents.ITEM_MODEL]?.let { put(id, it) }
-                    }
+                    if (! id.startsWith("minecraft:")) return@forEach
+                    item.components()[DataComponents.ITEM_MODEL]?.let { put(id, it) }
                 }
             }
         }
