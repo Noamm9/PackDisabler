@@ -1,8 +1,9 @@
-package com.github.noamm9.packdisabler.config
+package com.github.noamm9.packdisabler.config.managers
 
 import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.Utils.skyblockId
+import com.github.noamm9.packdisabler.config.Config
 import net.minecraft.client.KeyMapping
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
@@ -31,6 +32,4 @@ object WLM {
 
         return skyblockId(data)
     }
-
-
 }

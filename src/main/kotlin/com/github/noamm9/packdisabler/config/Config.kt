@@ -1,5 +1,8 @@
 package com.github.noamm9.packdisabler.config
 
+import com.github.noamm9.packdisabler.config.impl.ListSetting
+import com.github.noamm9.packdisabler.config.impl.MapSetting
+import com.github.noamm9.packdisabler.config.impl.StringSetting
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 import java.util.*
@@ -9,41 +12,17 @@ object Config {
     private val configDir = FabricLoader.getInstance().configDir.resolve("@MODID@").toFile()
     private val configFile = configDir.resolve("@MODID@.properties")
     private val config = Properties().apply {
-        configFile.takeIf(File::exists)?.reader()?.use(::load) ?: configFile.createNewFile()
+        configFile.takeIf(File::exists)?.reader()?.use(::load) ?: run {
+            configDir.mkdirs()
+            configFile.createNewFile()
+        }
     }
 
-    val whitelist = PersistedList(get("whitelist")?.takeUnless(String::isEmpty)?.split(" ") ?: emptyList())
-    var packUrl: String?
-        get() = get("packUrl")?.ifEmpty { null }
-        set(value) = set("packUrl", value.orEmpty())
+    var packUrl by StringSetting("packUrl")
+    val whitelist by ListSetting("whitelist")
+    val replacements by MapSetting("replacements")
 
-    fun replacement(id: String): String? = get("replacement.$id")
-
-    fun setReplacement(target: String, replacement: String?) {
-        val key = "replacement.$target"
-        if (replacement == null) config.remove(key) else config.setProperty(key, replacement)
-        save()
-    }
-
-    private fun get(key: String): String? = config.getProperty(key)
-    private fun set(key: String, value: String) = config.setProperty(key, value).let { save() }
-
-    private fun save() {
-        configFile.parentFile.mkdirs()
-        configFile.outputStream().use { config.store(it, "PackDisabler config") }
-    }
-
-    class PersistedList(initial: List<String>): ArrayList<String>(initial) {
-        private fun persist() = this@Config.set("whitelist", joinToString(" "))
-
-        override fun add(element: String) = super.add(element).also { persist() }
-        override fun add(index: Int, element: String) = super.add(index, element).also { persist() }
-
-        override fun addAll(elements: Collection<String>) = super.addAll(elements).also { persist() }
-        override fun remove(element: String) = super.remove(element).also { persist() }
-        override fun removeAt(index: Int) = super.removeAt(index).also { persist() }
-        override fun clear() = super.clear().also { persist() }
-
-        override fun set(index: Int, element: String) = super.set(index, element).also { persist() }
-    }
+    fun get(key: String): String? = config.getProperty(key)
+    fun set(key: String, value: String) = config.setProperty(key, value).let { save() }
+    private fun save() = configFile.outputStream().use { config.store(it, "PackDisabler config") }
 }

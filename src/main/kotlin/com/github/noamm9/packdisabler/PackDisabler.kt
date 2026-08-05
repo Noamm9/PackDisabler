@@ -1,8 +1,13 @@
 package com.github.noamm9.packdisabler
 
+//? if =1.21.11 {
+/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
+*///?} else {
+//?}
 import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.config.Config
-import com.github.noamm9.packdisabler.config.WLM
+import com.github.noamm9.packdisabler.config.managers.WLM
 import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
@@ -15,13 +20,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-//? if =1.21.11 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
-*///?} else {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
-//?}
 import net.minecraft.client.Minecraft
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.BuiltInRegistries
@@ -111,45 +111,63 @@ class PackDisabler: ClientModInitializer {
                     })
                 })
 
-                then(ClientCommands.literal("replace").then(
-                    ClientCommands.argument("replacement", StringArgumentType.greedyString()).apply {
-                        suggests { _, builder ->
-                            if ("reset".startsWith(builder.remaining, ignoreCase = true)) builder.suggest("reset")
-                            val remaining = builder.remaining.substringAfter(':')
-                            vanillaItemModels.keys.asSequence()
-                                .map { it.removePrefix("minecraft:") }
-                                .filter { it.startsWith(remaining, ignoreCase = true) }
-                                .forEach(builder::suggest)
-                            builder.buildFuture()
-                        }
+                then(ClientCommands.literal("replace")
+                    .then(ClientCommands.literal("set")
+                        .then(ClientCommands.argument("replacement", StringArgumentType.greedyString()).apply {
+                            suggests { _, builder ->
+                                val remaining = builder.remaining.substringAfter(':')
+                                vanillaItemModels.keys.asSequence()
+                                    .map { it.removePrefix("minecraft:") }
+                                    .filter { it.startsWith(remaining, ignoreCase = true) }
+                                    .forEach(builder::suggest)
+                                builder.buildFuture()
+                            }
 
-                        executes { context ->
+                            executes { context ->
+                                val target = WLM.id(Minecraft.getInstance().player?.mainHandItem) ?: run {
+                                    chat("§cHeld item has no SkyBlock ID!§r")
+                                    return@executes Command.SINGLE_SUCCESS
+                                }
+
+                                val replacementInput = StringArgumentType.getString(context, "replacement")
+                                val replacement = "minecraft:${replacementInput.lowercase()}"
+
+                                if (replacement !in vanillaItemModels) {
+                                    chat("§cUnknown vanilla item ID: §e$replacementInput§c.§r")
+                                    return@executes Command.SINGLE_SUCCESS
+                                }
+
+                                Config.replacements[target] = replacement
+                                chat("§e$target§r now looks like §e$replacement§r.")
+
+                                Command.SINGLE_SUCCESS
+                            }
+                        })
+                    )
+                    .then(ClientCommands.literal("remove")
+                        .executes { _ ->
                             val target = WLM.id(Minecraft.getInstance().player?.mainHandItem) ?: run {
                                 chat("§cHeld item has no SkyBlock ID!§r")
                                 return@executes Command.SINGLE_SUCCESS
                             }
-                            val replacementInput = StringArgumentType.getString(context, "replacement")
 
-                            if (replacementInput.equals("reset", ignoreCase = true)) {
-                                Config.setReplacement(target, null)
-                                chat("Removed visual replacement for §e$target§r.")
-                                return@executes Command.SINGLE_SUCCESS
-                            }
-
-                            val replacement = replacementInput
-                                .lowercase(Locale.ROOT)
-                                .let { if (':' in it) it else "minecraft:$it" }
-                            if (replacement !in vanillaItemModels) {
-                                chat("§cUnknown vanilla item ID: §e$replacementInput§c.§r")
-                                return@executes Command.SINGLE_SUCCESS
-                            }
-
-                            Config.setReplacement(target, replacement)
-                            chat("§e$target§r now looks like §e$replacement§r.")
+                            Config.replacements.remove(target)
+                            chat("Removed visual replacement for §e$target§r.")
                             Command.SINGLE_SUCCESS
                         }
-                    }
-                ))
+                    )
+                    .then(ClientCommands.literal("list")
+                        .executes { _ ->
+                            if (Config.replacements.isEmpty()) chat("No visual replacements set.")
+                            else chat(buildString {
+                                appendLine("§eCurrent visual replacements:§r")
+                                Config.replacements.forEach { (target, replacement) -> appendLine("§b$target§r -> §a$replacement§r") }
+                            })
+
+                            Command.SINGLE_SUCCESS
+                        }
+                    )
+                )
             })
         }
 
