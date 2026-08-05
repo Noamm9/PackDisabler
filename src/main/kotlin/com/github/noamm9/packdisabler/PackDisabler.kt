@@ -2,6 +2,7 @@ package com.github.noamm9.packdisabler
 
 import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.config.Config
+import com.github.noamm9.packdisabler.config.ReplacementConfig
 import com.github.noamm9.packdisabler.config.managers.WLM
 import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
@@ -58,7 +59,10 @@ class PackDisabler: ClientModInitializer {
         val commandUsage = mapOf(
             "/@MODID@ reload" to "Download and reload the Hypixel texture pack.",
             "/@MODID@ whitelist" to "Toggle the pack override for an item.",
-            "/@MODID@ replace <vanilla item>" to "Visually replace the held SkyBlock item with a vanilla item (use reset to remove).",
+            "/@MODID@ replace set <vanilla item>" to "Visually replace the held SkyBlock item with a vanilla item.",
+            "/@MODID@ replace remove" to "Remove the visual replacement from the held item.",
+            "/@MODID@ replace list" to "List all visual replacements.",
+            "/@MODID@ replace import|export" to "Share visual replacements through the clipboard.",
             "/@MODID@ debug" to "prints item data to chat when adding an item to the whitelist.",
         )
 
@@ -166,6 +170,8 @@ class PackDisabler: ClientModInitializer {
                             Command.SINGLE_SUCCESS
                         }
                     )
+                    .then(ClientCommands.literal("export").executes { exportReplacements() })
+                    .then(ClientCommands.literal("import").executes { importReplacements() })
                 )
             })
         }
@@ -182,6 +188,27 @@ class PackDisabler: ClientModInitializer {
         }
 
         logger.info("Finished loading ${idToLocation.size} items")
+    }
+
+    private fun exportReplacements(): Int {
+        Minecraft.getInstance().keyboardHandler.clipboard = ReplacementConfig.encode(Config.replacements)
+        chat("§aCopied ${Config.replacements.size} visual replacement(s) to the clipboard.§r")
+        return Command.SINGLE_SUCCESS
+    }
+
+    private fun importReplacements(): Int {
+        val clipboard = Minecraft.getInstance().keyboardHandler.clipboard.trim()
+        val replacements = ReplacementConfig.decode(clipboard)
+        if (replacements == null || replacements.any { (target, replacement) ->
+            target.isBlank() || target.any(Char::isWhitespace) || '=' in target || replacement !in vanillaItemModels
+        }) {
+            chat("§cFailed to import visual replacements. Is the clipboard data valid?§r")
+            return Command.SINGLE_SUCCESS
+        }
+
+        Config.replaceReplacements(replacements)
+        chat("§aImported ${replacements.size} visual replacement(s) from the clipboard.§r")
+        return Command.SINGLE_SUCCESS
     }
 
     private fun createProfile(sbid: String, texture: String): ResolvableProfile {

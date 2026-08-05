@@ -18,4 +18,10 @@ class MapSetting(
     override fun putAll(from: Map<out String, String>) = super.putAll(from).also { save() }
     override fun remove(key: String): String? = super.remove(key).also { save() }
     override fun clear() = super.clear().also { save() }
+
+    fun setAll(from: Map<String, String>) {
+        super.clear()
+        super.putAll(from)
+        save()
+    }
 }
