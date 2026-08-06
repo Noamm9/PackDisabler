@@ -33,6 +33,7 @@ abstract class MixinItemModelResolver {
         val id = WLM.id(instance)
 
         id?.let(Config.replacements::get)?.let(PackDisabler.vanillaItemModels::get)?.let { return it }
+        if (currentModel.namespace != "hypixel_skyblock") return currentModel
         if (id in Config.whitelist) return currentModel
 
         val customData = instance.customData
