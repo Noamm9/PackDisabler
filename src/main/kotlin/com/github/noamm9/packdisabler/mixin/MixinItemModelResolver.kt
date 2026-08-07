@@ -16,10 +16,18 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.injection.At
+import org.spongepowered.asm.mixin.injection.ModifyVariable
 
 @Mixin(ItemModelResolver::class)
 abstract class MixinItemModelResolver {
     private val `packdisabler$arrow` by lazy(LazyThreadSafetyMode.NONE) { Items.ARROW.components()[DataComponents.ITEM_MODEL] }
+
+    @ModifyVariable(method = ["appendItemLayers"], at = At("HEAD"), argsOnly = true)
+    private fun applyReplacementGlint(stack: ItemStack): ItemStack {
+        if (WLM.id(stack) !in Config.replacementGlints) return stack
+
+        return stack.copy().apply { set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true) }
+    }
 
     @WrapOperation(
         method = ["appendItemLayers"],
