@@ -22,6 +22,7 @@ object Config {
     val whitelist by ListSetting("whitelist")
     private val replacementSetting = MapSetting("replacements")
     val replacements by replacementSetting
+    val replacementGlints by ListSetting("replacementGlints")
 
     fun replaceReplacements(replacements: Map<String, String>) = replacementSetting.setAll(replacements)
 

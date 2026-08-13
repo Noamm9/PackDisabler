@@ -59,9 +59,10 @@ class PackDisabler: ClientModInitializer {
         val commandUsage = mapOf(
             "/@MODID@ reload" to "Download and reload the Hypixel texture pack.",
             "/@MODID@ whitelist" to "Toggle the pack override for an item.",
-            "/@MODID@ replace set <vanilla item>" to "Visually replace the held SkyBlock item with a vanilla item.",
+"/@MODID@ replace set <vanilla item>" to "Visually replace the held SkyBlock item with a vanilla item.",
             "/@MODID@ replace remove" to "Remove the visual replacement from the held item.",
             "/@MODID@ replace list" to "List all visual replacements.",
+            "/@MODID@ replace glint" to "Toggle the enchantment glint for the held item's replacement.",
             "/@MODID@ replace import|export" to "Share visual replacements through the clipboard.",
             "/@MODID@ debug" to "prints item data to chat when adding an item to the whitelist.",
         )
@@ -147,6 +148,24 @@ class PackDisabler: ClientModInitializer {
                             }
                         })
                     )
+                    .then(ClientCommands.literal("glint")
+                        .executes {
+                            val target = WLM.id(Minecraft.getInstance().player?.mainHandItem) ?: run {
+                                chat("§cHeld item has no Skyblock ID!§r")
+                                return@executes Command.SINGLE_SUCCESS
+                            }
+                            if (target !in Config.replacements) {
+                                chat("§cHeld item has no visual replacement!§r")
+                                return@executes Command.SINGLE_SUCCESS
+                            }
+
+                            val enabled = target !in Config.replacementGlints
+                            if (enabled) Config.replacementGlints.add(target)
+                            else Config.replacementGlints.remove(target)
+                            chat("Enchantment glint for §e$target§r: §e${if (enabled) "on" else "off"}§r.")
+                            Command.SINGLE_SUCCESS
+                        }
+                    )
                     .then(ClientCommands.literal("remove")
                         .executes { _ ->
                             val target = WLM.id(Minecraft.getInstance().player?.mainHandItem) ?: run {
@@ -155,6 +174,7 @@ class PackDisabler: ClientModInitializer {
                             }
 
                             Config.replacements.remove(target)
+                            Config.replacementGlints.remove(target)
                             chat("Removed visual replacement for §e$target§r.")
                             Command.SINGLE_SUCCESS
                         }

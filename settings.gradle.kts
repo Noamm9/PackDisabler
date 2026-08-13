@@ -9,13 +9,13 @@ pluginManagement {
     }
 
     plugins {
-        id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT"
-        id("net.fabricmc.fabric-loom-remap") version "1.15-SNAPSHOT"
+        id("net.fabricmc.fabric-loom") version "1.17.19"
+        id("net.fabricmc.fabric-loom-remap") version "1.17.19"
     }
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.9.6"
+    id("dev.kikugie.stonecutter") version "0.9.7"
 }
 
 stonecutter {
