@@ -20,11 +20,8 @@ object Config {
 
     var packUrl by StringSetting("packUrl")
     val whitelist by ListSetting("whitelist")
-    private val replacementSetting = MapSetting("replacements")
-    val replacements by replacementSetting
-    val replacementGlints by ListSetting("replacementGlints")
-
-    fun replaceReplacements(replacements: Map<String, String>) = replacementSetting.setAll(replacements)
+    val replacements by MapSetting("replacements")
+    val replacementGlints by MapSetting("replacementGlints")
 
     fun get(key: String): String? = config.getProperty(key)
     fun set(key: String, value: String) = config.setProperty(key, value).let { save() }

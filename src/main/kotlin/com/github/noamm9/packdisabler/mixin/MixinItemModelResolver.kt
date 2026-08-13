@@ -24,9 +24,9 @@ abstract class MixinItemModelResolver {
 
     @ModifyVariable(method = ["appendItemLayers"], at = At("HEAD"), argsOnly = true)
     private fun applyReplacementGlint(stack: ItemStack): ItemStack {
-        if (WLM.id(stack) !in Config.replacementGlints) return stack
+        val state = Config.replacementGlints[WLM.id(stack)] ?: return stack
 
-        return stack.copy().apply { set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true) }
+        return stack.copy().apply { set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, state == "on") }
     }
 
     @WrapOperation(
