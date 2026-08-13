@@ -21,7 +21,7 @@ object Config {
     var packUrl by StringSetting("packUrl")
     val whitelist by ListSetting("whitelist")
     val replacements by MapSetting("replacements")
-    val replacementGlints by ListSetting("replacementGlints")
+    val replacementGlints by MapSetting("replacementGlints")
 
     fun get(key: String): String? = config.getProperty(key)
     fun set(key: String, value: String) = config.setProperty(key, value).let { save() }
