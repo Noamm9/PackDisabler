@@ -31,9 +31,9 @@ import kotlin.io.path.exists
  * @see com.github.noamm9.packdisabler.mixin.MixinMinecraft
  */
 object HypixelPackLoader {
-    internal const val packId = "hypixel_skyblock"
     private const val packUrl = "https://resourcepacks.hypixel.net/SkyBlock/5c59e0a9-9865-4d4e-91d2-915515672cbd/84.zip"
     private const val fallbackPath = "/pack_fallback.zip"
+    const val packId = "hypixel_skyblock"
 
     private val packDir = FabricLoader.getInstance().configDir.resolve("@MODID@")
     private val packFileA = packDir.resolve("pack-a.zip")

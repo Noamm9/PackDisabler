@@ -11,7 +11,7 @@ import net.minecraft.server.packs.resources.ResourceManager
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.Unique
 import org.spongepowered.asm.mixin.injection.At
-import java.util.function.Predicate
+import java.util.function.*
 
 @Mixin(ShaderManager::class)
 abstract class MixinShaderManager {
@@ -55,6 +55,7 @@ abstract class MixinShaderManager {
             "shaders/core/rendertype_text_intensity_see_through.vsh",
             "shaders/include/modify_vanilla_color.glsl",
             "shaders/include/color_util.glsl" -> true
+
             else -> false
         }
     }
