@@ -19,6 +19,9 @@ object Config {
     }
 
     var packUrl by StringSetting("packUrl")
+    var newTextColors: Boolean
+        get() = get("newTextColors")?.toBooleanStrictOrNull() ?: false
+        set(value) = set("newTextColors", value.toString())
     val whitelist by ListSetting("whitelist")
     val replacements by MapSetting("replacements")
     val replacementGlints by MapSetting("replacementGlints")

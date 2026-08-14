@@ -31,6 +31,7 @@ import kotlin.io.path.exists
  * @see com.github.noamm9.packdisabler.mixin.MixinMinecraft
  */
 object HypixelPackLoader {
+    internal const val packId = "hypixel_skyblock"
     private const val packUrl = "https://resourcepacks.hypixel.net/SkyBlock/5c59e0a9-9865-4d4e-91d2-915515672cbd/84.zip"
     private const val fallbackPath = "/pack_fallback.zip"
 
@@ -131,7 +132,7 @@ object HypixelPackLoader {
 
     private fun buildPack(packPath: Path): Pack {
         val locationInfo = PackLocationInfo(
-            "hypixel_skyblock",
+            packId,
             Component.literal("PackDisabler: SkyblockPack"),
             PackSource.BUILT_IN,
             Optional.empty()
