@@ -38,6 +38,7 @@ abstract class MixinFallbackResourceManager {
     private fun isTextColorResource(location: Identifier): Boolean {
         if (location.namespace != "minecraft") return false
         return when (location.path) {
+            "shaders/core/text.vsh",
             "shaders/core/rendertype_text.vsh",
             "shaders/core/rendertype_text_see_through.vsh",
             "shaders/core/rendertype_text_intensity.vsh",
