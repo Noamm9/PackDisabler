@@ -1,10 +1,5 @@
 package com.github.noamm9.packdisabler.commands.impl
 
-//? if =1.21.11 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
-*///?} else {
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands
-//?}
 import com.github.noamm9.packdisabler.PackDisabler
 import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.config.Config
@@ -13,6 +8,7 @@ import com.github.noamm9.packdisabler.config.managers.WLM
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.Minecraft
 

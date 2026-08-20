@@ -12,11 +12,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-//? if =1.21.11 {
-/*import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper as KeyMappingHelper
-*///?} else {
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
-//?}
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
@@ -43,11 +39,7 @@ class PackDisabler: ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        //? if =1.21.11 {
-        /*KeyMappingHelper.registerKeyBinding(WLM.keybind)
-        *///?} else {
         KeyMappingHelper.registerKeyMapping(WLM.keybind)
-        //?}
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             ModCommands.register(dispatcher)

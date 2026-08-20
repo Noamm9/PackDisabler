@@ -29,8 +29,6 @@ object Utils {
 
         /*? if =26.1.2 { */
         /*mc.gui.chat.addClientSystemMessage(component)
-        *//*? } else if =1.21.11 { */
-        /*mc.gui.chat.addMessage(component)
         *//*? } else if =26.2 { */
         mc.gui.hud.chat.addClientSystemMessage(component)
         /*? } */
