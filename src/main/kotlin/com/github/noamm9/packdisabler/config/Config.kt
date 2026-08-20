@@ -1,5 +1,6 @@
 package com.github.noamm9.packdisabler.config
 
+import com.github.noamm9.packdisabler.config.impl.BooleanSetting
 import com.github.noamm9.packdisabler.config.impl.ListSetting
 import com.github.noamm9.packdisabler.config.impl.MapSetting
 import com.github.noamm9.packdisabler.config.impl.StringSetting
@@ -19,6 +20,7 @@ object Config {
     }
 
     var packUrl by StringSetting("packUrl")
+    var newTextColors by BooleanSetting("newTextColors")
     val whitelist by ListSetting("whitelist")
     val replacements by MapSetting("replacements")
     val replacementGlints by MapSetting("replacementGlints")
