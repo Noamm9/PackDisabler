@@ -5,16 +5,12 @@ plugins {
     alias(libs.plugins.blossom)
     alias(libs.plugins.ksp)
     alias(libs.plugins.fletchingtable.fabric)
-    id("net.fabricmc.fabric-loom") apply false
-    id("net.fabricmc.fabric-loom-remap") apply false
+    id("net.fabricmc.fabric-loom")
 }
 
-val obfuscated = property("mod.mc_version").toString().let { ! it.startsWith("26.") }
-plugins.apply(if (obfuscated) "net.fabricmc.fabric-loom-remap" else "net.fabricmc.fabric-loom")
-
 val loom = the<LoomGradleExtensionAPI>()
-val modImplementation = if (obfuscated) configurations.named("modImplementation") else configurations.implementation
-val modRuntimeOnly = if (obfuscated) configurations.named("modRuntimeOnly") else configurations.runtimeOnly
+val modImplementation = configurations.implementation
+val modRuntimeOnly = configurations.runtimeOnly
 
 class ModData {
     val id = property("mod.id").toString()
@@ -89,7 +85,6 @@ repositories {
 
 dependencies {
     "minecraft"("com.mojang:minecraft:${mc.version}")
-    if (obfuscated) "mappings"(loom.officialMojangMappings())
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${deps.devauthVersion}")
     modImplementation("net.fabricmc:fabric-loader:${deps.fabricLoaderVersion}")
@@ -100,12 +95,11 @@ dependencies {
 }
 
 java {
-    val javaVersion = if (obfuscated) JavaVersion.VERSION_21 else JavaVersion.VERSION_25
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
-kotlin { jvmToolchain(if (obfuscated) 21 else 25) }
+kotlin { jvmToolchain(25) }
 
 tasks.processResources {
     val props = buildMap {

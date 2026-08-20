@@ -10,7 +10,6 @@ pluginManagement {
 
     plugins {
         id("net.fabricmc.fabric-loom") version "1.17.19"
-        id("net.fabricmc.fabric-loom-remap") version "1.17.19"
     }
 }
 
@@ -23,7 +22,6 @@ stonecutter {
     centralScript = "build.gradle.kts"
 
     create(rootProject) {
-        version("1.21.11", "1.21.11")
         version("26.1.2", "26.1.2")
         version("26.2", "26.2")
     }

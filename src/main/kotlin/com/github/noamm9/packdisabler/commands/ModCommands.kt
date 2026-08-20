@@ -5,11 +5,7 @@ import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.commands.impl.*
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.CommandDispatcher
-//? if =1.21.11 {
-/*import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager as ClientCommands
-*///?} else {
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
-//?}
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 
 object ModCommands {
