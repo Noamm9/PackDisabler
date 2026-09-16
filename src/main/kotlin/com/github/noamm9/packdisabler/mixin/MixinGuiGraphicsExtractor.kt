@@ -1,19 +1,15 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation
-import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner
 import net.minecraft.resources.Identifier
 import org.spongepowered.asm.mixin.Mixin
+import org.spongepowered.asm.mixin.injection.At
+import org.spongepowered.asm.mixin.injection.ModifyVariable
 
 @Mixin(GuiGraphicsExtractor::class)
 abstract class MixinGuiGraphicsExtractor {
-    @WrapMethod(method = ["tooltip"])
-    private fun onRenderTooltip(font: Font, lines: MutableList<ClientTooltipComponent>, x: Int, y: Int, positioner: ClientTooltipPositioner, style: Identifier?, original: Operation<Void>) {
-        val oldStyle = if (style?.namespace == "hypixel_skyblock") null else style
-        original.call(font, lines, x, y, positioner, oldStyle)
+    @ModifyVariable(method = ["tooltip"], at = At("HEAD"), argsOnly = true)
+    private fun onRenderTooltip(style: Identifier?): Identifier? {
+        return if (style?.namespace == "hypixel_skyblock") null else style
     }
 }
