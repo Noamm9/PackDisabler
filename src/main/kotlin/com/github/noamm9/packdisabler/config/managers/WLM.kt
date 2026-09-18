@@ -4,12 +4,12 @@ import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.config.Config
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.KeyMapping
 import net.minecraft.world.item.ItemStack
-import org.lwjgl.glfw.GLFW
 
 object WLM {
-    val keybind = KeyMapping("PackDisabler Whitelist Item", GLFW.GLFW_KEY_P, KeyMapping.Category.INVENTORY)
+    val keybind = KeyMapping("PackDisabler Whitelist Item", InputConstants.KEY_P, KeyMapping.Category.INVENTORY)
 
     fun toggle(id: String) {
         if (id in Config.whitelist) {

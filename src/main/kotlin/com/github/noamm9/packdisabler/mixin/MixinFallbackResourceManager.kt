@@ -11,14 +11,13 @@ import org.spongepowered.asm.mixin.Unique
 import org.spongepowered.asm.mixin.injection.At
 import org.spongepowered.asm.mixin.injection.Inject
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
-import java.util.function.*
 
 @Mixin(FallbackResourceManager::class)
 abstract class MixinFallbackResourceManager {
     @Shadow abstract fun getResourceStack(location: Identifier): List<Resource>
 
     @Inject(method = ["listResources"], at = [At("RETURN")], cancellable = true)
-    private fun selectTextColorResources(path: String, filter: Predicate<Identifier>, cir: CallbackInfoReturnable<Map<Identifier, Resource>>) {
+    private fun selectTextColorResources(cir: CallbackInfoReturnable<Map<Identifier, Resource>>) {
         val resources = cir.returnValue.toMutableMap()
         resources.keys.filter(::isTextColorResource).forEach { location ->
             val stack = getResourceStack(location)

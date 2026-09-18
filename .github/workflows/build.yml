@@ -56,3 +56,11 @@ jobs:
           path: versions/26.2/build/libs/*.jar
           if-no-files-found: error
           archive: false
+
+      - name: Upload 26.3 JAR
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: PackDisabler-26.3
+          path: versions/26.3/build/libs/*.jar
+          if-no-files-found: error
+          archive: false
