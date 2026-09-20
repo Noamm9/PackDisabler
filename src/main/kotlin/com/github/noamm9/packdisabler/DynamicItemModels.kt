@@ -12,6 +12,12 @@ object DynamicItemModels {
     private val diamondSword = Items.DIAMOND_SWORD.identifier
     private val goldenSword = Items.GOLDEN_SWORD.identifier
 
+    private val carnivalShovels = mapOf(
+        "carnival_shovel_iron" to Items.IRON_SHOVEL.identifier,
+        "carnival_shovel_gold" to Items.GOLDEN_SHOVEL.identifier,
+        "carnival_shovel_diamond" to Items.DIAMOND_SHOVEL.identifier,
+    )
+
     private val attunedModels = mapOf(
         "FIREDUST_DAGGER" to (1 to goldenSword),
         "BURSTFIRE_DAGGER" to (1 to goldenSword),
@@ -24,7 +30,15 @@ object DynamicItemModels {
     private val katanas = setOf("VOIDEDGE_KATANA", "VORPAL_KATANA", "ATOMSPLIT_KATANA")
     private val fungiCutters = setOf("FUNGI_CUTTER", "FUNGI_CUTTER_2", "FUNGI_CUTTER_3")
 
-    fun resolve(skyblockId: String, stack: ItemStack, customData: CompoundTag, fallback: Identifier) = when (skyblockId) {
+    fun resolve(
+        skyblockId: String,
+        stack: ItemStack,
+        customData: CompoundTag,
+        currentModel: Identifier,
+        fallback: Identifier,
+    ) = when (skyblockId) {
+        "CARNIVAL_SHOVEL" -> carnivalShovels[currentModel.path.substringAfterLast('/')] ?: fallback
+
         in attunedModels -> attunedModels.getValue(skyblockId).let { (mode, model) ->
             if (customData.getInt("td_attune_mode").orElse(- 1) == mode) model else fallback
         }
