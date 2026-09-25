@@ -53,6 +53,6 @@ abstract class MixinItemModelResolver {
             else -> null
         } ?: return currentModel
 
-        return skyblockID?.let { DynamicItemModels.resolve(it, instance, customData, oldModel) } ?: oldModel
+        return skyblockID?.let { DynamicItemModels.resolve(it, instance, customData, currentModel, oldModel) } ?: oldModel
     }
 }
