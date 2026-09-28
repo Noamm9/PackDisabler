@@ -32,16 +32,11 @@ class Dependencies {
     val devauthVersion = property("deps.devauth_version")
 }
 
-class McData {
-    val version = property("mod.mc_version")
-    val dep = property("mod.mc_dep").toString()
-}
-
-val mc = McData()
 val mod = ModData()
 val deps = Dependencies()
+val mcVersion = stonecutter.current.version
 
-version = "${mod.version}+${mc.version}"
+version = "${mod.version}+${mcVersion}"
 group = mod.group
 base { archivesName.set(mod.id) }
 blossom {
@@ -84,12 +79,12 @@ repositories {
 }
 
 dependencies {
-    "minecraft"("com.mojang:minecraft:${mc.version}")
+    "minecraft"("com.mojang:minecraft:$mcVersion")
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${deps.devauthVersion}")
     modImplementation("net.fabricmc:fabric-loader:${deps.fabricLoaderVersion}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${deps.fabricKotlinVersion}")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${deps.fabricApiVersion}+${mc.version}") {
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${deps.fabricApiVersion}+$mcVersion") {
         exclude(group = "net.fabricmc.fabric-api", module = "fabric-content-registries-v0")
     }
 }
@@ -106,7 +101,7 @@ tasks.processResources {
         put("id", mod.id)
         put("name", mod.name)
         put("version", mod.version)
-        put("mcdep", mc.dep)
+        put("mcdep", mcVersion)
         put("description", mod.description)
         put("source", mod.source)
         put("issues", mod.issues)
@@ -124,11 +119,4 @@ tasks.processResources {
     }
 
     filesMatching("fabric.mod.json") { expand(props) }
-}
-
-if (stonecutter.current.isActive) {
-    rootProject.tasks.register("buildActive") {
-        group = "project"
-        dependsOn(tasks.named("build"))
-    }
 }

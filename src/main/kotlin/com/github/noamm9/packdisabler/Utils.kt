@@ -27,11 +27,8 @@ object Utils {
         val component = prefix.copy().append(Component.literal(" $msg"))
         val mc = Minecraft.getInstance()
 
-        /*? if =26.1.2 { */
-        /*mc.gui.chat.addClientSystemMessage(component)
-        *//*? } else if >=26.2 { */
+        //~ if >=26.2 '.gui.chat' -> '.gui.hud.chat'
         mc.gui.hud.chat.addClientSystemMessage(component)
-        /*? } */
     }
 
     //@formatter:off
