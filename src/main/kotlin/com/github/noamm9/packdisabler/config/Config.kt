@@ -20,6 +20,7 @@ object Config {
     }
 
     var packUrl by StringSetting("packUrl")
+    var hasSeenFirstUseMessage by BooleanSetting("hasSeenFirstUseMessage")
     var newTextColors by BooleanSetting("newTextColors")
     val whitelist by ListSetting("whitelist")
     val replacements by MapSetting("replacements")
