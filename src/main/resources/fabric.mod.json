@@ -7,7 +7,9 @@
   "authors": [
     "Noamm"
   ],
-  "contributors": [],
+  "contributors": [
+    "jcnlk"
+  ],
   "contact": {
     "homepage": "${modrinth}",
     "sources": "${source}",
@@ -22,5 +24,18 @@
     "java": ">=21",
     "fabric-api": "*",
     "fabric-language-kotlin": "*"
+  },
+  "conflicts": {
+    "packdisabler": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.modrinth": "${modrinth}",
+        "modmenu.discord": "${discord}",
+        "modmenu.kofi": "${kofi}"
+      },
+      "update_checker": true
+    }
   }
 }

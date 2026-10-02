@@ -23,6 +23,7 @@ class ModData {
     val license = property("mod.license").toString()
     val modrinth = property("mod.modrinth")
     val discord = property("mod.discord")
+    val kofi = property("mod.kofi")
 }
 
 class Dependencies {
@@ -108,6 +109,7 @@ tasks.processResources {
         put("license", mod.license)
         put("modrinth", mod.modrinth)
         put("discord", mod.discord)
+        put("kofi", mod.kofi)
         put("fabric_loader_version", deps.fabricLoaderVersion)
     }
 
