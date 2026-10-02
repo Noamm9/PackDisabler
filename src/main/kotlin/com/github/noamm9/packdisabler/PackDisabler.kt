@@ -8,9 +8,7 @@ import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import com.mojang.authlib.properties.PropertyMap
 import dev.kikugie.fletching_table.annotation.fabric.Entrypoint
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
@@ -48,9 +46,9 @@ class PackDisabler: ClientModInitializer {
         }
 
         ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
-            if (Config.hasSeenFirstUseMessage) return@register
+            if (Config.firstInstall) return@register
             ModCommands.printFirstUseMessage()
-            Config.hasSeenFirstUseMessage = true
+            Config.firstInstall = true
         }
 
         val raw = this::class.java.getResourceAsStream("/skyblock-items.json")?.reader()?.readText() ?: error("missing skyblock-items.json")
