@@ -1,9 +1,6 @@
 package com.github.noamm9.packdisabler.config
 
-import com.github.noamm9.packdisabler.config.impl.BooleanSetting
-import com.github.noamm9.packdisabler.config.impl.ListSetting
-import com.github.noamm9.packdisabler.config.impl.MapSetting
-import com.github.noamm9.packdisabler.config.impl.StringSetting
+import com.github.noamm9.packdisabler.config.impl.*
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 import java.util.*
@@ -20,6 +17,7 @@ object Config {
     }
 
     var packUrl by StringSetting("packUrl")
+    var firstInstall by BooleanSetting("firstInstall")
     var newTextColors by BooleanSetting("newTextColors")
     val whitelist by ListSetting("whitelist")
     val replacements by MapSetting("replacements")
