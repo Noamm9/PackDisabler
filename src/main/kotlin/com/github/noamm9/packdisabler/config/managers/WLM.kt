@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
 
 object WLM {
-    private val keybindCategory = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("packdisabler", "keybinds"))
+    private val keybindCategory = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("@MODID@", "keybinds"))
     val keybind = KeyMapping("Whitelist Item", InputConstants.KEY_P, keybindCategory)
     val debugKeybind = KeyMapping("Debug", InputConstants.UNKNOWN.value, keybindCategory)
 
