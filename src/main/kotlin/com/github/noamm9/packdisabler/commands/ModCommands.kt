@@ -23,7 +23,6 @@ object ModCommands {
         "/@MODID@ glint set <on|off>" to "Set replacement glint.",
         "/@MODID@ glint remove" to "Reset glint override.",
         "/@MODID@ glint list" to "List glint overrides.",
-        "/@MODID@ debug" to "Toggle data copy on whitelist key.",
     )
 
     fun printFirstUseMessage() {
@@ -55,7 +54,6 @@ object ModCommands {
         dispatcher.register(ClientCommands.literal("@MODID@").apply {
             executes { printHelp() }
             then(ClientCommands.literal("help").executes { printHelp() })
-            then(DebugCommand.build())
             then(ReloadCommand.build())
             then(TextColorsCommand.build())
             then(WhitelistCommand.build())

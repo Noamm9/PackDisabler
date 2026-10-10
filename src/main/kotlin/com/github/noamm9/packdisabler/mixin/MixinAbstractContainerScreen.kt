@@ -1,6 +1,5 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.PackDisabler
 import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.Utils.rawNBT
 import com.github.noamm9.packdisabler.config.managers.WLM
@@ -20,14 +19,15 @@ abstract class MixinAbstractContainerScreen {
 
     @Inject(method = ["keyPressed"], at = [At("HEAD")], cancellable = true)
     private fun onKeyPressed(event: KeyEvent, cir: CallbackInfoReturnable<Boolean>) {
-        if (! WLM.keybind.matches(event)) return
         val stack = hoveredSlot?.takeIf(Slot::hasItem)?.item ?: return
-        WLM.id(stack)?.let(WLM::toggle)
-        cir.returnValue = true
-
-        if (PackDisabler.debug) {
-            Minecraft.getInstance().keyboardHandler.clipboard = stack.rawNBT
-            chat("copied raw item data tp clipboard")
+        when {
+            WLM.debugKeybind.matches(event) -> {
+                Minecraft.getInstance().keyboardHandler.clipboard = stack.rawNBT
+                chat("Copied raw item data to clipboard.")
+            }
+            WLM.keybind.matches(event) -> WLM.id(stack)?.let(WLM::toggle)
+            else -> return
         }
+        cir.returnValue = true
     }
 }

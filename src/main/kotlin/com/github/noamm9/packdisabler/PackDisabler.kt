@@ -35,11 +35,11 @@ class PackDisabler: ClientModInitializer {
                 }
             }
         }
-        var debug = false
     }
 
     override fun onInitializeClient() {
         KeyMappingHelper.registerKeyMapping(WLM.keybind)
+        KeyMappingHelper.registerKeyMapping(WLM.debugKeybind)
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             ModCommands.register(dispatcher)
