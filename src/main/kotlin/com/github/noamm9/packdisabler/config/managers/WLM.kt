@@ -6,10 +6,13 @@ import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.config.Config
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.KeyMapping
+import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
 
 object WLM {
-    val keybind = KeyMapping("PackDisabler Whitelist Item", InputConstants.KEY_P, KeyMapping.Category.INVENTORY)
+    private val keybindCategory = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("packdisabler", "keybinds"))
+    val keybind = KeyMapping("Whitelist Item", InputConstants.KEY_P, keybindCategory)
+    val debugKeybind = KeyMapping("Debug", InputConstants.UNKNOWN.value, keybindCategory)
 
     fun toggle(id: String) {
         if (id in Config.whitelist) {
