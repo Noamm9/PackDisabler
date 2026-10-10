@@ -58,7 +58,7 @@ class PackDisabler: ClientModInitializer {
             val model = item["model"]?.jsonPrimitive?.content ?: continue
             val texture = item["texture"]?.jsonPrimitive?.content
 
-            idToLocation[sbid] = Identifier.parse(model)
+            idToLocation[sbid] = Identifier.parse(model.replace("minecraft:skull", "minecraft:player_head"))
             if (! texture.isNullOrEmpty()) idToSkullProfile[sbid] = createProfile(sbid, texture)
         }
 
