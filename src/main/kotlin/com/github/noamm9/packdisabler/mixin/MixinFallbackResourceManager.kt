@@ -18,8 +18,11 @@ abstract class MixinFallbackResourceManager {
 
     @Inject(method = ["listResources"], at = [At("RETURN")], cancellable = true)
     private fun selectTextColorResources(cir: CallbackInfoReturnable<Map<Identifier, Resource>>) {
+        val locations = cir.returnValue.keys.filter(::isTextColorResource)
+        if (locations.isEmpty()) return
+
         val resources = cir.returnValue.toMutableMap()
-        resources.keys.filter(::isTextColorResource).forEach { location ->
+        locations.forEach { location ->
             val stack = getResourceStack(location)
             val selected = if (Config.newTextColors) {
                 stack.find { it.sourcePackId() == HypixelPackLoader.packId } ?: stack.lastOrNull()

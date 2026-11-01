@@ -17,13 +17,11 @@ object Utils {
     private val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
 
     val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
-    val ItemStack.skyblockId get() = skyblockId(customData)
-    val ItemStack.skyblockSkinId get() = normalizedId(customData, "skin")
+    fun skyblockId(tag: CompoundTag) = normalizedId(tag, "id")
+    fun skyblockSkinId(tag: CompoundTag) = normalizedId(tag, "skin")
+    private fun normalizedId(tag: CompoundTag, key: String) = tag.getString(key).getOrNull()?.replace(":", "-")
 
-    val skyblockId = fun(tag: CompoundTag) = normalizedId(tag, "id")
-    private val normalizedId = fun(tag: CompoundTag, key: String) = tag.getString(key).getOrNull()?.replace(":", "-")
-
-    val chat = fun(msg: String) {
+    fun chat(msg: String) {
         val component = prefix.copy().append(Component.literal(" $msg"))
         val mc = Minecraft.getInstance()
 

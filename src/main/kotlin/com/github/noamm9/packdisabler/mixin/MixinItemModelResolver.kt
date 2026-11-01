@@ -38,13 +38,13 @@ abstract class MixinItemModelResolver {
     )
     private fun appendItemLayerHook(instance: ItemStack, dataComponentType: DataComponentType<*>, original: Operation<Identifier?>): Any? {
         val currentModel = original.call(instance, dataComponentType) ?: return null
-        val id = WLM.id(instance)
+        val customData = instance.customData
+        val id = if (instance.isEmpty) null else WLM.id(customData)
 
         id?.let(Config.replacements::get)?.let(PackDisabler.vanillaItemModels::get)?.let { return it }
         if (currentModel.namespace != "hypixel_skyblock") return currentModel
         if (id in Config.whitelist) return currentModel
 
-        val customData = instance.customData
         val skyblockID = skyblockId(customData)
 
         val oldModel = when {

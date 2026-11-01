@@ -2,7 +2,7 @@ package com.github.noamm9.packdisabler.config.types
 
 import com.github.noamm9.packdisabler.config.Config
 
-interface ConfigSetting<T> {
+interface ConfigSetting {
     val name: String
     fun write(): String
     fun save() = Config.set(name, write())

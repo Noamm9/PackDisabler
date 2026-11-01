@@ -1,6 +1,7 @@
 package com.github.noamm9.packdisabler.mixin
 
 import com.github.noamm9.packdisabler.PackDisabler
+import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.Utils.skyblockSkinId
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
@@ -26,9 +27,10 @@ abstract class MixinPlayerHeadSpecialRenderer {
         val currentProfile = original.call(instance, dataComponentType)
         if (instance.isEmpty) return currentProfile
         if (instance.`is`(Items.PLAYER_HEAD)) return currentProfile
-        val sbid = instance.skyblockId ?: return currentProfile
+        val data = instance.customData
+        val sbid = skyblockId(data) ?: return currentProfile
 
-        return instance.skyblockSkinId?.let(PackDisabler.idToSkullProfile::get)
+        return skyblockSkinId(data)?.let(PackDisabler.idToSkullProfile::get)
             ?: PackDisabler.idToSkullProfile[sbid]
             ?: currentProfile
     }

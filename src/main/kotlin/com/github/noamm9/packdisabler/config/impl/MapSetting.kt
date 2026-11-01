@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
 class MapSetting(
     override val name: String,
     initial: Map<String, String> = deserializeEntries(Config.get(name).orEmpty()).associate { it.split("=", limit = 2).let { l -> Pair(l[0], l[1]) } }
-): HashMap<String, String>(initial), ConfigSetting<Map<String, String>>, ReadOnlyProperty<Config, HashMap<String, String>> {
+): HashMap<String, String>(initial), ConfigSetting, ReadOnlyProperty<Config, HashMap<String, String>> {
     override fun getValue(thisRef: Config, property: KProperty<*>): HashMap<String, String> = this
     override fun write() = serializeEntries(entries.map { "${it.key}=${it.value}" })
 

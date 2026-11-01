@@ -6,6 +6,7 @@ import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.config.Config
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.KeyMapping
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
 
@@ -25,12 +26,12 @@ object WLM {
         }
     }
 
-    // could be expended in the future
     fun id(stack: ItemStack?): String? {
-        if (stack == null) return null
-        if (stack.isEmpty) return null
+        if (stack == null || stack.isEmpty) return null
+        return id(stack.customData)
+    }
 
-        val data = stack.customData
+    fun id(data: CompoundTag): String? {
         if ("quiver_arrow" in data) return "quiver_arrow"
 
         return skyblockId(data)

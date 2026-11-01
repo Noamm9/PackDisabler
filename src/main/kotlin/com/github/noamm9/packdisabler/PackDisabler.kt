@@ -24,7 +24,7 @@ import java.util.*
 class PackDisabler: ClientModInitializer {
     companion object {
         val logger = LoggerFactory.getLogger(PackDisabler::class.java)
-        var idToLocation = HashMap<String, Identifier>()
+        val idToLocation = HashMap<String, Identifier>()
         val idToSkullProfile = HashMap<String, ResolvableProfile>()
         val vanillaItemModels by lazy(LazyThreadSafetyMode.NONE) {
             buildMap {
@@ -51,7 +51,7 @@ class PackDisabler: ClientModInitializer {
             Config.firstInstall = true
         }
 
-        val raw = this::class.java.getResourceAsStream("/skyblock-items.json")?.reader()?.readText() ?: error("missing skyblock-items.json")
+        val raw = this::class.java.getResourceAsStream("/skyblock-items.json")?.reader()?.use { it.readText() } ?: error("missing skyblock-items.json")
 
         for ((sbid, element) in Json.parseToJsonElement(raw).jsonObject) {
             val item = element.jsonObject

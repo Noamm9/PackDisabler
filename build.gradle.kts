@@ -8,10 +8,6 @@ plugins {
     id("net.fabricmc.fabric-loom")
 }
 
-val loom = the<LoomGradleExtensionAPI>()
-val modImplementation = configurations.implementation
-val modRuntimeOnly = configurations.runtimeOnly
-
 class ModData {
     val id = property("mod.id").toString()
     val name = property("mod.name")
@@ -42,7 +38,6 @@ group = mod.group
 base { archivesName.set(mod.id) }
 blossom {
     replaceToken("@MODID@", mod.id)
-    replaceToken("@VERSION@", mod.version)
 }
 
 extensions.configure<LoomGradleExtensionAPI> {
@@ -59,8 +54,6 @@ extensions.configure<LoomGradleExtensionAPI> {
 
             configureEach {
                 if (mixinJarFile != null) vmArg("-javaagent:$mixinJarFile")
-                //vmArg("-XX:+AllowEnhancedClassRedefinition")
-
                 property("mixin.hotSwap", "true")
                 property("mixin.debug.export", "true")
             }
@@ -76,16 +69,15 @@ fletchingTable {
 
 repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1") // DevAuth
-    maven("https://api.modrinth.com/maven") // Modrinth
 }
 
 dependencies {
     "minecraft"("com.mojang:minecraft:$mcVersion")
 
-    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${deps.devauthVersion}")
-    modImplementation("net.fabricmc:fabric-loader:${deps.fabricLoaderVersion}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:${deps.fabricKotlinVersion}")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${deps.fabricApiVersion}+$mcVersion") {
+    runtimeOnly("me.djtheredstoner:DevAuth-fabric:${deps.devauthVersion}")
+    implementation("net.fabricmc:fabric-loader:${deps.fabricLoaderVersion}")
+    implementation("net.fabricmc:fabric-language-kotlin:${deps.fabricKotlinVersion}")
+    implementation("net.fabricmc.fabric-api:fabric-api:${deps.fabricApiVersion}+$mcVersion") {
         exclude(group = "net.fabricmc.fabric-api", module = "fabric-content-registries-v0")
     }
 }
@@ -114,11 +106,6 @@ tasks.processResources {
     }
 
     props.forEach(inputs::property)
-
-    filesMatching("**/lang/en_us.json") {
-        expand(props)
-        filteringCharset = "UTF-8"
-    }
 
     filesMatching("fabric.mod.json") { expand(props) }
 }

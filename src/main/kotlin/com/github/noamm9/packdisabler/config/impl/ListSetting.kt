@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
 class ListSetting(
     override val name: String,
     initial: List<String> = deserializeEntries(Config.get(name).orEmpty())
-): ArrayList<String>(initial), ConfigSetting<List<String>>, ReadOnlyProperty<Config, MutableList<String>> {
+): ArrayList<String>(initial), ConfigSetting, ReadOnlyProperty<Config, MutableList<String>> {
     override fun getValue(thisRef: Config, property: KProperty<*>): MutableList<String> = this
     override fun write() = serializeEntries(this)
 
