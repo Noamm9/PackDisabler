@@ -1,4 +1,9 @@
+import groovy.json.JsonSlurper
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
+import java.net.URI
+import java.net.http.*
+import java.security.MessageDigest
+import java.util.zip.*
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -24,6 +29,7 @@ class ModData {
     val modrinth = property("mod.modrinth")
     val discord = property("mod.discord")
     val kofi = property("mod.kofi")
+    val packFormat = property("mod.pack_format").toString().toInt()
 }
 
 class Dependencies {
@@ -58,11 +64,17 @@ extensions.configure<LoomGradleExtensionAPI> {
             }.files.firstOrNull()
 
             configureEach {
-                if (mixinJarFile != null) vmArg("-javaagent:$mixinJarFile")
-                //vmArg("-XX:+AllowEnhancedClassRedefinition")
+                if (mixinJarFile != null) jvmArguments.add("-javaagent:$mixinJarFile")
+                jvmArguments.add("-XX:+AllowEnhancedClassRedefinition")
 
-                property("mixin.hotSwap", "true")
-                property("mixin.debug.export", "true")
+                if (stonecutter.eval(mcVersion, ">=26.3")) {
+                    jvmArguments.add("java.base/jdk.internal.misc=ALL-UNNAMED")
+                    jvmArguments.add("-XX:StackShadowPages=32")
+                    jvmArguments.add("--add-exports")
+                }
+
+                systemProperties.put("mixin.hotSwap", "true")
+                systemProperties.put("mixin.debug.export", "true")
             }
         }
     }
@@ -97,7 +109,69 @@ java {
 
 kotlin { jvmToolchain(25) }
 
+val downloadHypixelPack by tasks.registering {
+    val outputDir = layout.buildDirectory.dir("generated/hypixelPack")
+    val hashFile = layout.buildDirectory.file("generated/hypixelPack.sha1")
+
+    inputs.property("packFormat", mod.packFormat)
+    outputs.dir(outputDir)
+    outputs.file(hashFile)
+    outputs.upToDateWhen { false }
+
+    doLast {
+        val zipFile = outputDir.get().file("pack_fallback.zip").asFile
+        val urlFile = outputDir.get().file("pack_fallback.url").asFile
+        val hashFile = hashFile.get().asFile
+        val httpClient = HttpClient.newHttpClient()
+        fun sha1(bytes: ByteArray) = MessageDigest.getInstance("SHA-1").digest(bytes).joinToString("") { "%02x".format(it) }
+
+        @Suppress("UNCHECKED_CAST")
+        val version = runCatching {
+            val request = HttpRequest.newBuilder(URI.create("https://api.hypixel.net/v2/resources/packs")).build()
+            val body = httpClient.send(request, HttpResponse.BodyHandlers.ofString()).body()
+
+            val packs = (JsonSlurper().parseText(body) as Map<String, Any>)["packs"] as List<Map<String, Any>>
+            val versions = packs.first { it["id"] == "SkyBlock" }["versions"] as List<Map<String, Any>>
+            versions.firstOrNull { it["packFormat"] == mod.packFormat } ?: error("No SkyBlock pack with format ${mod.packFormat}, available: ${versions.map { it["packFormat"] }}")
+        }.getOrElse {
+            if (! zipFile.exists() || ! urlFile.exists()) throw GradleException("Failed to fetch Hypixel pack info", it)
+            logger.warn("Failed to fetch Hypixel pack info, reusing previously downloaded pack: ${it.message}")
+            return@doLast
+        }
+
+        val url = version["url"].toString()
+        val hash = version["hash"].toString()
+
+        if (! zipFile.exists() || ! hashFile.exists() || hashFile.readText() != hash) {
+            logger.lifecycle("Downloading Hypixel pack from $url")
+            val bytes = httpClient.send(HttpRequest.newBuilder(URI.create(url)).build(), HttpResponse.BodyHandlers.ofByteArray()).body()
+            if (sha1(bytes) != hash) throw GradleException("Hypixel pack hash mismatch for $url")
+            zipFile.parentFile.mkdirs()
+
+            // sounds are fucking 16MB wtf?
+            ZipInputStream(bytes.inputStream()).use { input ->
+                ZipOutputStream(zipFile.outputStream()).use { output ->
+                    generateSequence { input.nextEntry }
+                        .filterNot { it.name.startsWith("assets/hypixel_skyblock/sounds") }
+                        .forEach { entry ->
+                            output.putNextEntry(ZipEntry(entry.name))
+                            input.copyTo(output)
+                            output.closeEntry()
+                        }
+                }
+            }
+
+            hashFile.writeText(hash)
+            logger.lifecycle("Download finished")
+        }
+
+        urlFile.writeText(url)
+    }
+}
+
 tasks.processResources {
+    from(downloadHypixelPack)
+
     val props = buildMap {
         put("id", mod.id)
         put("name", mod.name)

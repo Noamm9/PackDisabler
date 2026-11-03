@@ -31,7 +31,7 @@ import kotlin.io.path.exists
  * @see com.github.noamm9.packdisabler.mixin.MixinMinecraft
  */
 object HypixelPackLoader {
-    private const val packUrl = "https://resourcepacks.hypixel.net/SkyBlock/5c59e0a9-9865-4d4e-91d2-915515672cbd/84.zip"
+    private val packUrl = javaClass.getResource("/pack_fallback.url")?.readText()?.trim() ?: error("Bundled fallback pack url not found in jar")
     private const val fallbackPath = "/pack_fallback.zip"
     const val packId = "hypixel_skyblock"
 
