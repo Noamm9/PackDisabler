@@ -1,5 +1,6 @@
 package com.github.noamm9.packdisabler
 
+import com.github.noamm9.packdisabler.mixin.ICustomData
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.mojang.serialization.JsonOps
@@ -16,7 +17,8 @@ import kotlin.jvm.optionals.getOrNull
 object Utils {
     private val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
 
-    val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
+    @Suppress("KotlinConstantConditions")
+    val ItemStack.customData get() = (getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY) as ICustomData).tag
     val ItemStack.skyblockId get() = skyblockId(customData)
     val ItemStack.skyblockSkinId get() = normalizedId(customData, "skin")
 
