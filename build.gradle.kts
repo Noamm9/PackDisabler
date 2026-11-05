@@ -6,10 +6,10 @@ import java.security.MessageDigest
 import java.util.zip.*
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.blossom)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.fletchingtable.fabric)
+    id("org.jetbrains.kotlin.jvm")
+    id("net.kyori.blossom")
+    id("com.google.devtools.ksp")
+    id("dev.kikugie.fletching-table.fabric")
     id("net.fabricmc.fabric-loom")
 }
 
