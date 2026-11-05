@@ -68,9 +68,8 @@ extensions.configure<LoomGradleExtensionAPI> {
                 jvmArguments.add("-XX:+AllowEnhancedClassRedefinition")
 
                 if (stonecutter.eval(mcVersion, ">=26.3")) {
-                    jvmArguments.add("java.base/jdk.internal.misc=ALL-UNNAMED")
+                    jvmArguments.add("--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED")
                     jvmArguments.add("-XX:StackShadowPages=32")
-                    jvmArguments.add("--add-exports")
                 }
 
                 systemProperties.put("mixin.hotSwap", "true")
