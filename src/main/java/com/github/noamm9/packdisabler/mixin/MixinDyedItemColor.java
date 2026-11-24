@@ -1,7 +1,7 @@
 package com.github.noamm9.packdisabler.mixin;
 
+import com.github.noamm9.packdisabler.Utils;
 import com.github.noamm9.packdisabler.config.Config;
-import com.github.noamm9.packdisabler.config.managers.WLM;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import kotlin.text.StringsKt;
 import net.minecraft.util.ARGB;
@@ -17,7 +17,7 @@ abstract class MixinDyedItemColor {
         var dyes = Config.INSTANCE.getArmorDyes();
         if (dyes.isEmpty()) return original;
 
-        String hex = dyes.get(WLM.INSTANCE.id(stack));
+        String hex = dyes.get(Utils.INSTANCE.getUuid(stack));
         if (hex == null) return original;
 
         Integer rgb = StringsKt.toIntOrNull(hex, 16);

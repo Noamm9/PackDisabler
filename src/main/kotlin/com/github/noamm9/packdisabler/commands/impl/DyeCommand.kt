@@ -1,8 +1,8 @@
 package com.github.noamm9.packdisabler.commands.impl
 
 import com.github.noamm9.packdisabler.Utils.chat
+import com.github.noamm9.packdisabler.Utils.uuid
 import com.github.noamm9.packdisabler.config.Config
-import com.github.noamm9.packdisabler.config.managers.WLM
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
@@ -23,7 +23,7 @@ object DyeCommand {
             if (!hexColor.matches(color)) return@executes fail("Enter a six-digit hex color, e.g. #FF6600.")
 
             val stack = context.source.player.mainHandItem
-            val target = WLM.id(stack) ?: return@executes fail("Held item has no SkyBlock ID.")
+            val target = stack.uuid ?: return@executes fail("Held item has no SkyBlock UUID.")
             val equipment = stack.get(DataComponents.EQUIPPABLE)
             if (equipment == null || !equipment.slot().isArmor || equipment.assetId().isEmpty) {
                 return@executes fail("Hold a SkyBlock armor piece with an armor model.")
@@ -37,7 +37,7 @@ object DyeCommand {
     )
 
     private fun removeCommand() = ClientCommands.literal("remove").executes { context ->
-        val target = WLM.id(context.source.player.mainHandItem) ?: return@executes fail("Held item has no SkyBlock ID.")
+        val target = context.source.player.mainHandItem.uuid ?: return@executes fail("Held item has no SkyBlock UUID.")
 
         if (Config.armorDyes.remove(target) != null) chat("Restored the original armor color for §e$target§r.")
         else chat("No armor dye override set for §e$target§r.")

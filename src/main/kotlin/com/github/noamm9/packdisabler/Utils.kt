@@ -21,6 +21,7 @@ object Utils {
     val ItemStack.customData get() = (getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY) as ICustomData).tag
     val ItemStack.skyblockId get() = skyblockId(customData)
     val ItemStack.skyblockSkinId get() = normalizedId(customData, "skin")
+    val ItemStack.uuid get() = customData.getString("uuid").getOrNull()?.takeIf(String::isNotBlank)
 
     val skyblockId = fun(tag: CompoundTag) = normalizedId(tag, "id")
     private val normalizedId = fun(tag: CompoundTag, key: String) = tag.getString(key).getOrNull()?.replace(":", "-")
