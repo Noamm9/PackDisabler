@@ -3,10 +3,13 @@ package com.github.noamm9.packdisabler.commands.impl
 import com.github.noamm9.packdisabler.Utils.chat
 import com.github.noamm9.packdisabler.Utils.uuid
 import com.github.noamm9.packdisabler.config.Config
+import com.github.noamm9.packdisabler.mixin.IEntityRenderDispatcher
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
+import net.minecraft.client.resources.model.EquipmentClientInfo.LayerType
 import net.minecraft.core.component.DataComponents
+import net.minecraft.world.entity.EquipmentSlot
 
 object DyeCommand {
     private val hexColor = Regex("[0-9a-fA-F]{6}")
@@ -25,8 +28,15 @@ object DyeCommand {
             val stack = context.source.player.mainHandItem
             val target = stack.uuid ?: return@executes fail("Held item has no SkyBlock UUID.")
             val equipment = stack.get(DataComponents.EQUIPPABLE)
-            if (equipment == null || !equipment.slot().isArmor || equipment.assetId().isEmpty) {
-                return@executes fail("Hold a SkyBlock armor piece with an armor model.")
+            val slot = equipment?.slot()
+            val assetId = equipment?.assetId()?.orElse(null)
+            val layer = if (slot == EquipmentSlot.LEGS) LayerType.HUMANOID_LEGGINGS else LayerType.HUMANOID
+            val assets = (context.source.client.entityRenderDispatcher as IEntityRenderDispatcher).equipmentAssets
+
+            if (slot?.type != EquipmentSlot.Type.HUMANOID_ARMOR || assetId == null ||
+                assets.get(assetId).getLayers(layer).none { it.dyeable().isPresent }
+            ) {
+                return@executes fail("This item is not dyeable.")
             }
 
             val rgb = color.uppercase()
