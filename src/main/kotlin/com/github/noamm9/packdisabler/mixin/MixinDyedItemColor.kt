@@ -15,11 +15,8 @@ abstract class MixinDyedItemColor {
         @JvmStatic
         @ModifyReturnValue(method = ["getOrDefault"], at = [At("RETURN")])
         private fun overrideDyeColor(original: Int, stack: ItemStack): Int {
-            val dyes = Config.armorDyes
-            if (dyes.isEmpty()) return original
-
-            val rgb = dyes[stack.uuid]?.toIntOrNull(16) ?: return original
-            return if (rgb in 0..0xFFFFFF) ARGB.opaque(rgb) else original
+            val color = Config.armorDyes[stack.uuid ?: return original] ?: return original
+            return ARGB.opaque(color.toInt(16))
         }
     }
 }
