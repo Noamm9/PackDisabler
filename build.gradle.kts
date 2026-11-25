@@ -49,6 +49,7 @@ base { archivesName.set(mod.id) }
 blossom {
     replaceToken("@MODID@", mod.id)
     replaceToken("@VERSION@", mod.version)
+    replaceToken("@PACKFORMAT@", mod.packFormat)
 }
 
 extensions.configure<LoomGradleExtensionAPI> {

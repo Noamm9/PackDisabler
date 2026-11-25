@@ -1,7 +1,6 @@
 package com.github.noamm9.packdisabler.mixin
 
-import com.github.noamm9.packdisabler.DynamicItemModels
-import com.github.noamm9.packdisabler.PackDisabler
+import com.github.noamm9.packdisabler.*
 import com.github.noamm9.packdisabler.Utils.customData
 import com.github.noamm9.packdisabler.Utils.skyblockId
 import com.github.noamm9.packdisabler.config.Config
@@ -23,10 +22,10 @@ abstract class MixinItemModelResolver {
     private val `packdisabler$arrow` by lazy(LazyThreadSafetyMode.NONE) { Items.ARROW.components()[DataComponents.ITEM_MODEL] }
 
     @ModifyVariable(method = ["appendItemLayers"], at = At("HEAD"), argsOnly = true)
-    private fun applyReplacementGlint(stack: ItemStack): ItemStack {
-        val state = Config.replacementGlints[WLM.id(stack)] ?: return stack
+    private fun applyReplacementGlint(item: ItemStack): ItemStack {
+        val state = Config.replacementGlints[WLM.id(item)] ?: return item
 
-        return stack.copy().apply { set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, state == "on") }
+        return item.copy().apply { set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, state == "on") }
     }
 
     @WrapOperation(
@@ -41,7 +40,7 @@ abstract class MixinItemModelResolver {
         val id = WLM.id(instance)
 
         id?.let(Config.replacements::get)?.let(PackDisabler.vanillaItemModels::get)?.let { return it }
-        if (currentModel.namespace != "hypixel_skyblock") return currentModel
+        if (currentModel.namespace != HypixelPackLoader.packId) return currentModel
         if (id in Config.whitelist) return currentModel
 
         val customData = instance.customData
