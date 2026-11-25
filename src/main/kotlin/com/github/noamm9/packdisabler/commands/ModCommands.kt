@@ -23,9 +23,9 @@ object ModCommands {
         "/@MODID@ glint set <on|off>" to "Set replacement glint.",
         "/@MODID@ glint remove" to "Reset glint override.",
         "/@MODID@ glint list" to "List glint overrides.",
-        "/@MODID@ dye set <#RRGGBB>" to "Set the color of dyeable armor, e.g. #FF6600.",
-        "/@MODID@ dye remove" to "Restore the original armor color.",
-        "/@MODID@ dye list" to "List armor dye overrides.",
+        "/@MODID@ armorcolor set <#RRGGBB>" to "Set the color of dyeable armor, e.g. #FF6600.",
+        "/@MODID@ armorcolor remove" to "Restore the original armor color.",
+        "/@MODID@ armorcolor list" to "List armor dye overrides.",
     )
 
     fun printFirstUseMessage() {
@@ -62,7 +62,7 @@ object ModCommands {
             then(WhitelistCommand.build())
             then(GlintCommand.build())
             then(ReplaceCommand.build())
-            then(DyeCommand.build())
+            then(ArmorColorCommand.build())
         })
     }
 }

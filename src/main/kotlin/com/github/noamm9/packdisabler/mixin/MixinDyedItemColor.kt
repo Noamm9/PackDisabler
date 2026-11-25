@@ -14,8 +14,8 @@ abstract class MixinDyedItemColor {
     private companion object {
         @JvmStatic
         @ModifyReturnValue(method = ["getOrDefault"], at = [At("RETURN")])
-        private fun overrideDyeColor(original: Int, stack: ItemStack): Int {
-            val color = Config.armorDyes[stack.uuid ?: return original] ?: return original
+        private fun overrideDyeColor(original: Int, itemStack: ItemStack): Int {
+            val color = Config.armorColors[itemStack.uuid ?: return original] ?: return original
             return ARGB.opaque(color.toInt(16))
         }
     }
