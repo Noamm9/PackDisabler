@@ -1,133 +1,99 @@
 package com.github.noamm9.packdisabler
 
-import com.github.noamm9.packdisabler.PackDisabler.Companion.logger
 import com.github.noamm9.packdisabler.config.Config
 import kotlinx.coroutines.*
+import kotlinx.coroutines.future.await
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
-import net.minecraft.server.packs.FilePackResources
-import net.minecraft.server.packs.PackLocationInfo
-import net.minecraft.server.packs.PackSelectionConfig
-import net.minecraft.server.packs.PackType
+import net.minecraft.server.packs.*
 import net.minecraft.server.packs.repository.Pack
 import net.minecraft.server.packs.repository.PackSource
-import net.minecraft.server.packs.repository.RepositorySource
-import java.io.IOException
+import java.io.InputStream
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.nio.file.FileSystemException
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
+import java.net.http.*
+import java.nio.file.*
+import java.security.MessageDigest
 import java.time.Duration
 import java.util.*
-import java.util.function.*
-import kotlin.io.path.exists
+import java.util.concurrent.*
+import kotlin.io.path.*
 
 /**
+ * @see PackDisablerPreLaunch
  * @see com.github.noamm9.packdisabler.mixin.MixinMinecraft
  */
 object HypixelPackLoader {
-    private val packUrl = javaClass.getResource("/pack_fallback.url")?.readText()?.trim() ?: error("Bundled fallback pack url not found in jar")
-    private const val fallbackPath = "/pack_fallback.zip"
     const val packId = "hypixel_skyblock"
 
     private val packDir = FabricLoader.getInstance().configDir.resolve("@MODID@")
-    private val packFileA = packDir.resolve("pack-a.zip")
-    private val packFileB = packDir.resolve("pack-b.zip")
-
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + CoroutineName("PackDisabler-HypixelPackLoader"))
-    private val httpClient = HttpClient.newHttpClient()
+    private val httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()
     private var reloadJob: Job? = null
 
-    @Volatile private var activePackFile = getPackFile() ?: packFileA
-    @Volatile private var activePack = lazy {
-        runBlocking(scope.coroutineContext) {
-            preparePack(activePackFile, allowCachedFallback = true) ?: error("Failed to prepare initial Hypixel pack")
-        }
+    @Volatile var activePack = lazy { buildPack(runBlocking { initialPack.await() }) }
+    val initialPack = PackDisabler.scope.async(start = CoroutineStart.LAZY) {
+        val path = preparePack()
+        packDir.listDirectoryEntries("*.{zip,sha1,tmp}").filter { it != path }.forEach { runCatching { it.deleteIfExists() } }
+        path
     }
 
     fun reload(onComplete: (Boolean) -> Unit = {}) {
         if (reloadJob?.isActive == true) return
+        val mc = Minecraft.getInstance()
 
-        reloadJob = scope.launch {
-            val targetFile = if (activePackFile == packFileA) packFileB else packFileA
-            val pack = preparePack(targetFile) ?: error("No valid Hypixel pack was downloaded")
-            activePack = lazyOf(pack)
-            activePackFile = targetFile
-            Minecraft.getInstance().submit(Minecraft.getInstance()::reloadResourcePacks)
-        }
-
-        reloadJob?.invokeOnCompletion { error ->
-            if (error != null) logger.error("Failed to reload the Hypixel pack", error)
-            onComplete(error == null)
-            reloadJob = null
+        reloadJob = PackDisabler.scope.launch {
+            activePack = lazyOf(buildPack(preparePack(allowFallback = false)))
+            mc.submit<CompletableFuture<Void>> { mc.reloadResourcePacks() }.thenCompose { it }.await()
+        }.apply {
+            invokeOnCompletion { error ->
+                if (error != null) PackDisabler.logger.error("Failed to reload the Hypixel pack", error)
+                mc.execute { onComplete(error == null) }
+                reloadJob = null
+            }
         }
     }
 
-    fun updatePackUrl(url: String) {
-        if (Config.packUrl == url) return
+    fun updatePack(url: String, hash: String) {
+        if (Config.packUrl == url && Config.packHash == hash.lowercase().ifEmpty { null }) return
         Config.packUrl = url
+        Config.packHash = hash.lowercase()
         reload()
     }
 
-    private suspend fun preparePack(targetFile: Path, allowCachedFallback: Boolean = false): Pack? {
-        withContext(Dispatchers.IO) { Files.createDirectories(packDir) }
-        val path = downloadPack(targetFile) ?: (if (allowCachedFallback) getPackFile() ?: targetFile else return null)
-
-        if (! path.exists()) {
-            logger.info("Download failed, extracting bundled fallback pack")
-            javaClass.getResourceAsStream(fallbackPath)?.use { input ->
-                Files.copy(input, targetFile, StandardCopyOption.REPLACE_EXISTING)
-            } ?: error("Bundled fallback pack not found in jar at $fallbackPath")
+    // the bundled pack has no sounds, so it never takes the hash name of a real download
+    private fun preparePack(allowFallback: Boolean = true): Path {
+        Files.createDirectories(packDir)
+        val hash = Config.packHash
+        val url = Config.packUrl
+        if (hash != null && url != null) {
+            val file = packDir.resolve("$hash.zip")
+            if (file.exists() || download(url, hash, file)) return file
+            check(allowFallback) { "No valid Hypixel pack was downloaded" }
         }
 
-        return buildPack(path)
+        return packDir.listDirectoryEntries("*.zip").maxByOrNull { it.getLastModifiedTime() } ?: extractBundled(packDir.resolve("bundled.zip"))
     }
 
-    private suspend fun downloadPack(targetFile: Path): Path? {
-        logger.info("Downloading hypixel pack...")
+    private fun extractBundled(file: Path): Path {
+        PackDisabler.logger.info("Extracting bundled fallback pack")
+        val input = javaClass.getResourceAsStream("/pack_fallback.zip") ?: error("Bundled fallback pack not found in jar")
+        input.use { write(it, file) }
+        return file
+    }
 
-        val request = HttpRequest.newBuilder().apply {
-            uri(URI.create(Config.packUrl ?: packUrl))
-            header("Accept-Encoding", "gzip")
-            timeout(Duration.ofSeconds(10))
-        }.build()
+    private fun download(url: String, hash: String, file: Path) = runCatching {
+        PackDisabler.logger.info("Downloading hypixel pack from $url")
+        val request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(10)).build()
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray())
+        check(response.statusCode() in 200 .. 299) { "Returned status ${response.statusCode()}" }
+        check(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(response.body())) == hash) { "Does not match hash $hash" }
+        write(response.body().inputStream(), file)
+    }.onFailure { PackDisabler.logger.error("Failed to download Hypixel pack from $url", it) }.isSuccess
 
-        val tmp = withContext(Dispatchers.IO) { Files.createTempFile(packDir, "pack", ".tmp") }
-        val response = runCatching { withContext(Dispatchers.IO) { httpClient.send(request, HttpResponse.BodyHandlers.ofFile(tmp)) } }.onFailure {
-            logger.error("Failed to download pack from ${request.uri()}", it)
-            Files.deleteIfExists(tmp)
-        }.getOrNull() ?: return null
-
-        if (response.statusCode() !in 200 .. 299) {
-            logger.error("GET request to ${request.uri()} returned status ${response.statusCode()}, discarding")
-            withContext(Dispatchers.IO) { Files.deleteIfExists(tmp) }
-            return null
-        }
-
-        return try {
-            withContext(Dispatchers.IO) { Files.move(tmp, targetFile, StandardCopyOption.REPLACE_EXISTING) }
-            logger.info("Hypixel pack downloaded successfully")
-            targetFile
-        }
-        catch (error: FileSystemException) {
-            if (! Files.isRegularFile(targetFile)) {
-                withContext(Dispatchers.IO) { Files.deleteIfExists(tmp) }
-                throw error
-            }
-            logger.warn("Cannot replace $targetFile; using fresh download for this session", error)
-            tmp.toFile().deleteOnExit()
-            tmp
-        }
-        catch (error: IOException) {
-            logger.error("Failed to move downloaded pack into place", error)
-            withContext(Dispatchers.IO) { Files.deleteIfExists(tmp) }
-            throw error
-        }
+    private fun write(source: InputStream, file: Path) {
+        val tmp = file.resolveSibling("${file.name}.tmp")
+        Files.copy(source, tmp, StandardCopyOption.REPLACE_EXISTING)
+        tmp.moveTo(file, overwrite = true)
     }
 
     private fun buildPack(packPath: Path): Pack {
@@ -152,11 +118,5 @@ object HypixelPackLoader {
             PackType.CLIENT_RESOURCES,
             selectionConfig
         ) ?: error("Failed to read pack metadata for $packPath")
-    }
-
-    private fun getPackFile() = listOf(packFileA, packFileB).filter(Files::exists).maxByOrNull(Files::getLastModifiedTime)
-
-    class HypixelPackRepositorySource: RepositorySource {
-        override fun loadPacks(onLoad: Consumer<Pack>) = onLoad.accept(activePack.value)
     }
 }

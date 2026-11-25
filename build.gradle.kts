@@ -52,7 +52,7 @@ blossom {
 }
 
 extensions.configure<LoomGradleExtensionAPI> {
-    runConfigs.all { ideConfigGenerated(stonecutter.current.isActive) }
+    runConfigs.all { generateRunConfig = stonecutter.current.isActive }
     runConfigs.remove(runConfigs["server"])
 
     runs {
@@ -108,19 +108,17 @@ java {
 
 kotlin { jvmToolchain(25) }
 
-val downloadHypixelPack by tasks.registering {
+val downloadHypixelPack = tasks.register("downloadHypixelPack") {
     val outputDir = layout.buildDirectory.dir("generated/hypixelPack")
-    val hashFile = layout.buildDirectory.file("generated/hypixelPack.sha1")
 
     inputs.property("packFormat", mod.packFormat)
     outputs.dir(outputDir)
-    outputs.file(hashFile)
     outputs.upToDateWhen { false }
 
     doLast {
         val zipFile = outputDir.get().file("pack_fallback.zip").asFile
         val urlFile = outputDir.get().file("pack_fallback.url").asFile
-        val hashFile = hashFile.get().asFile
+        val hashFile = outputDir.get().file("pack_fallback.sha1").asFile
         val httpClient = HttpClient.newHttpClient()
         fun sha1(bytes: ByteArray) = MessageDigest.getInstance("SHA-1").digest(bytes).joinToString("") { "%02x".format(it) }
 

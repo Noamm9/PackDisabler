@@ -8,6 +8,7 @@ import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import com.mojang.authlib.properties.PropertyMap
 import dev.kikugie.fletching_table.annotation.fabric.Entrypoint
+import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -23,6 +24,7 @@ import java.util.*
 @Entrypoint(Entrypoint.CLIENT)
 class PackDisabler: ClientModInitializer {
     companion object {
+        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + CoroutineName("PackDisabler"))
         val logger = LoggerFactory.getLogger(PackDisabler::class.java)
         var idToLocation = HashMap<String, Identifier>()
         val idToSkullProfile = HashMap<String, ResolvableProfile>()
@@ -51,18 +53,20 @@ class PackDisabler: ClientModInitializer {
             Config.firstInstall = true
         }
 
-        val raw = this::class.java.getResourceAsStream("/skyblock-items.json")?.reader()?.readText() ?: error("missing skyblock-items.json")
+        scope.launch {
+            val raw = this::class.java.getResourceAsStream("/skyblock-items.json")?.reader()?.readText() ?: error("missing skyblock-items.json")
 
-        for ((sbid, element) in Json.parseToJsonElement(raw).jsonObject) {
-            val item = element.jsonObject
-            val model = item["model"]?.jsonPrimitive?.content ?: continue
-            val texture = item["texture"]?.jsonPrimitive?.content
+            for ((sbid, element) in Json.parseToJsonElement(raw).jsonObject) {
+                val item = element.jsonObject
+                val model = item["model"]?.jsonPrimitive?.content ?: continue
+                val texture = item["texture"]?.jsonPrimitive?.content
 
-            idToLocation[sbid] = Identifier.parse(model)
-            if (! texture.isNullOrEmpty()) idToSkullProfile[sbid] = createProfile(sbid, texture)
+                idToLocation[sbid] = Identifier.parse(model)
+                if (! texture.isNullOrEmpty()) idToSkullProfile[sbid] = createProfile(sbid, texture)
+            }
+
+            logger.info("Finished loading ${idToLocation.size} items")
         }
-
-        logger.info("Finished loading ${idToLocation.size} items")
     }
 
     private fun createProfile(sbid: String, texture: String): ResolvableProfile {

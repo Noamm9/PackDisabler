@@ -17,6 +17,7 @@ object Config {
     }
 
     var packUrl by StringSetting("packUrl")
+    var packHash by StringSetting("packHash")
     var firstInstall by BooleanSetting("firstInstall")
     var newTextColors by BooleanSetting("newTextColors")
     val whitelist by ListSetting("whitelist")
