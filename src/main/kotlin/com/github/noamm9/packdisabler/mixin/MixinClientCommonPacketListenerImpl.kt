@@ -27,7 +27,7 @@ abstract class MixinClientCommonPacketListenerImpl {
     private fun onResourcePack(packet: ClientboundResourcePackPushPacket, ci: CallbackInfo) {
         PackDisabler.logger.info("ClientboundResourcePackPushPacket: ${packet.url}")
         if (! packet.url.contains("hypixel.net") || ! packet.url.contains("SkyBlock")) return
-        HypixelPackLoader.updatePack(packet.url, packet.hash)
+        HypixelPackLoader.INSTANCE.updatePack(packet.url, packet.hash)
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.ACCEPTED))
         connection.send(ServerboundResourcePackPacket(packet.id, ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED))
         ci.cancel()

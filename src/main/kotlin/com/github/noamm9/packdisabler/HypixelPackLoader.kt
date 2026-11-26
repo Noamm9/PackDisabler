@@ -3,7 +3,7 @@ package com.github.noamm9.packdisabler
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
 import kotlinx.serialization.json.*
-import net.fabricmc.loader.api.FabricLoader
+import net.fabricmc.loader.api.*
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.server.packs.*
@@ -20,18 +20,21 @@ import java.util.concurrent.*
 import kotlin.io.path.*
 
 /**
- * @see PackDisablerPreLaunch
  * @see com.github.noamm9.packdisabler.mixin.MixinMinecraft
  */
-object HypixelPackLoader {
+class HypixelPackLoader: LanguageAdapter {
+    companion object {
+        lateinit var INSTANCE: HypixelPackLoader
+        const val packId = "hypixel_skyblock"
+    }
+
     private val httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()
     private val packDir = FabricLoader.getInstance().configDir.resolve("@MODID@").also(Files::createDirectories)
     @Volatile private var activePath: Path? = null
     private var reloadJob: Job? = null
 
-    const val packId = "hypixel_skyblock"
-
-    @Volatile var activePack = lazy { buildPack(runBlocking { initialPack.await() }) }
+    @Volatile private var pack: Pack? = null
+    val activePack get() = pack ?: buildPack(runBlocking { initialPack.await() }).also { pack = it }
     val initialPack = PackDisabler.scope.async(start = CoroutineStart.LAZY) {
         val path = try {
             val (url, hash) = fetchPackInfo()
@@ -53,6 +56,11 @@ object HypixelPackLoader {
         path
     }
 
+    init {
+        INSTANCE = this
+        initialPack.start()
+    }
+
     fun updatePack(url: String, hash: String) {
         if (activePath == packDir.resolve("${hash.lowercase()}.zip")) return PackDisabler.logger.info("Server sent the active Hypixel pack, skipping reload")
         PackDisabler.logger.info("Server sent a new Hypixel pack $hash")
@@ -67,7 +75,7 @@ object HypixelPackLoader {
         reloadJob = PackDisabler.scope.launch {
             val (url, hash) = packInfo ?: fetchPackInfo()
             val path = download(url, hash)
-            activePack = lazyOf(buildPack(path))
+            pack = buildPack(path)
             activePath = path
             PackDisabler.logger.info("Reloading resources with Hypixel pack ${path.name}")
             mc.submit<CompletableFuture<Void>> { mc.reloadResourcePacks() }.thenCompose { it }.await()
@@ -156,4 +164,6 @@ object HypixelPackLoader {
             check(statusCode() in 200 .. 299) { "Returned status ${statusCode()}" }
         }
     }
+
+    override fun <T> create(mod: ModContainer?, value: String?, type: Class<T?>?) = error("Not implemented")
 }

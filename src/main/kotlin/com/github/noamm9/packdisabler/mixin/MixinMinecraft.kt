@@ -21,7 +21,7 @@ abstract class MixinMinecraft {
     )
     private fun addHypixelPackSource(repositorySources: Array<RepositorySource>): Array<RepositorySource> {
         return repositorySources + object: RepositorySource {
-            override fun loadPacks(onLoad: Consumer<Pack>) = onLoad.accept(HypixelPackLoader.activePack.value)
+            override fun loadPacks(onLoad: Consumer<Pack>) = onLoad.accept(HypixelPackLoader.INSTANCE.activePack)
         }
     }
 }

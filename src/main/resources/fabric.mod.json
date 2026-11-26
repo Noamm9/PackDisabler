@@ -18,6 +18,9 @@
   "license": "${license}",
   "icon": "icon.png",
   "environment": "client",
+  "languageAdapters": {
+    "${id}": "com.github.noamm9.packdisabler.HypixelPackLoader"
+  },
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
     "minecraft": "${mcdep}",

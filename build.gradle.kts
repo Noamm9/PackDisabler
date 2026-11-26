@@ -56,6 +56,12 @@ extensions.configure<LoomGradleExtensionAPI> {
     runConfigs.all { generateRunConfig = stonecutter.current.isActive }
     runConfigs.remove(runConfigs["server"])
 
+    mods {
+        register(mod.id) {
+            sourceSet(sourceSets["main"])
+        }
+    }
+
     runs {
         afterEvaluate {
             val mixinJarFile = configurations.runtimeClasspath.get().incoming.artifactView {
